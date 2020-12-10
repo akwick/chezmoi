@@ -24,7 +24,7 @@ General:
 - `run_once_` scripts with same content but different names will only be run once
 - global `--use-builtin-git`
 - added `.chezmoi.version` template var
-- added `gitHubKeys` template func
+- added `gitHubKeys` template func uses `CHEZMOI_GITHUB_ACCESS_TOKEN`, `GITHUB_ACCESS_TOKEN`, and `GITHUB_TOKEN` first non-empty
 - template data on a best-effort basis, errors ignored
 
 {{ range (gitHubKeys "twpayne") -}}

@@ -24,10 +24,17 @@ func (c *Config) gitHubKeysTemplateFunc(user string) []*github.Key {
 
 	if c.gitHub.client == nil {
 		var httpClient *http.Client
-		if accessToken, ok := os.LookupEnv("CHEZMOI_GITHUB_ACCESS_TOKEN"); ok {
-			httpClient = oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{
-				AccessToken: accessToken,
-			}))
+		for _, key := range []string{
+			"CHEZMOI_GITHUB_ACCESS_TOKEN",
+			"GITHUB_ACCESS_TOKEN",
+			"GITHUB_TOKEN",
+		} {
+			if accessToken := os.Getenv(key); accessToken != "" {
+				httpClient = oauth2.NewClient(ctx, oauth2.StaticTokenSource(&oauth2.Token{
+					AccessToken: accessToken,
+				}))
+				break
+			}
 		}
 		c.gitHub.client = github.NewClient(httpClient)
 	}
