@@ -389,56 +389,33 @@ func (c *Config) defaultTemplateData() (map[string]interface{}, error) {
 	// determined. Unset variables will trigger template errors if used,
 	// alerting the user to the problem and allowing them to find alternative
 	// solutions.
-
-	// First, attempt to determine the current user using user.Current, falling
-	// back to the $USER environment variable if set, and otherwise leaving
-	// username unset.
-	currentUser, err := user.Current()
-	if err == nil {
+	if currentUser, err := user.Current(); err == nil {
 		data["username"] = currentUser.Username
+		if group, err := user.LookupGroupId(currentUser.Gid); err != nil {
+			data["group"] = group.Name
+		}
 	} else if user, ok := os.LookupEnv("USER"); ok {
 		data["username"] = user
 	}
 
-	// If the current user could be determined, then attempt to lookup the group
-	// id. There is no fallback.
-	if currentUser != nil {
-		if group, err := user.LookupGroupId(currentUser.Gid); err != nil {
-			data["group"] = group.Name
+	if hostname, err := os.Hostname(); err == nil {
+		data["fullHostname"] = hostname
+		data["hostname"] = strings.SplitN(hostname, ".", 2)[0]
+	}
+
+	if homeDir, err := os.UserHomeDir(); err == nil {
+		absHomeDir, err := filepath.Abs(homeDir)
+		if err == nil {
+			data["homeDir"] = filepath.ToSlash(absHomeDir)
 		}
 	}
 
-	hostname, err := os.Hostname()
-	if err != nil {
-		return nil, err
-	}
-	data["fullHostname"] = hostname
-	data["hostname"] = strings.SplitN(hostname, ".", 2)[0]
-
-	homeDir, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
-	}
-	absHomeDir, err := filepath.Abs(homeDir)
-	if err != nil {
-		return nil, err
-	}
-	data["homeDir"] = filepath.ToSlash(absHomeDir)
-
-	kernelInfo, err := getKernelInfo(c.fs)
-	if err == nil && kernelInfo != nil {
+	if kernelInfo, err := getKernelInfo(c.fs); err == nil {
 		data["kernel"] = kernelInfo
-	} else if err != nil {
-		return nil, err
 	}
 
-	osRelease, err := getOSRelease(c.fs)
-	if err == nil {
-		if osRelease != nil {
-			data["osRelease"] = upperSnakeCaseToCamelCaseMap(osRelease)
-		}
-	} else if !os.IsNotExist(err) {
-		return nil, err
+	if osRelease, err := getOSRelease(c.fs); err == nil {
+		data["osRelease"] = upperSnakeCaseToCamelCaseMap(osRelease)
 	}
 
 	return map[string]interface{}{

@@ -25,6 +25,7 @@ General:
 - global `--use-builtin-git`
 - added `.chezmoi.version` template var
 - added `gitHubKeys` template func
+- template data on a best-effort basis, errors ignored
 
 {{ range (gitHubKeys "twpayne") -}}
 {{ .Key }}
