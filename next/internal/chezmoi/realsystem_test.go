@@ -9,8 +9,6 @@ import (
 	"github.com/stretchr/testify/require"
 	vfs "github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
-
-	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 var _ System = &RealSystem{}
@@ -69,7 +67,7 @@ func TestRealSystemGlob(t *testing.T) {
 }
 
 func newTestRealSystem(fs vfs.FS) *RealSystem {
-	return NewRealSystem(fs, chezmoitest.NewPersistentState())
+	return NewRealSystem(fs, NewMockPersistentState())
 }
 
 func pathsToSlashes(paths []string) []string {

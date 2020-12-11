@@ -1,4 +1,4 @@
-package chezmoitest
+package chezmoi
 
 import (
 	"io"
@@ -17,7 +17,7 @@ func TestPersistentState(t *testing.T) {
 		value  = []byte("value")
 	)
 
-	s := NewPersistentState()
+	s := NewMockPersistentState()
 
 	require.NoError(t, s.OpenOrCreate())
 

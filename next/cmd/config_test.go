@@ -12,7 +12,6 @@ import (
 	xdg "github.com/twpayne/go-xdg/v3"
 
 	"github.com/twpayne/chezmoi/next/internal/chezmoi"
-	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 func TestAddTemplateFuncPanic(t *testing.T) {
@@ -101,7 +100,7 @@ func TestValidateKeys(t *testing.T) {
 }
 
 func newTestConfig(t *testing.T, fs vfs.FS) *Config {
-	system := chezmoi.NewRealSystem(fs, chezmoitest.NewPersistentState())
+	system := chezmoi.NewRealSystem(fs, chezmoi.NewMockPersistentState())
 	c, err := newConfig(
 		withBaseSystem(system),
 		withDestSystem(system),
