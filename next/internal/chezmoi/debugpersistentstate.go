@@ -58,15 +58,6 @@ func (s *debugPersistentState) Get(bucket, key []byte) ([]byte, error) {
 	return value, err
 }
 
-// OpenOrCreate implements PersistentState.OpenOrCreate.
-func (s *debugPersistentState) OpenOrCreate() error {
-	err := s.s.OpenOrCreate()
-	s.logger.Debug().
-		Err(err).
-		Msg("OpenOrCreate")
-	return err
-}
-
 // Set implements PersistentState.Set.
 func (s *debugPersistentState) Set(bucket, key, value []byte) error {
 	err := s.s.Set(bucket, key, value)

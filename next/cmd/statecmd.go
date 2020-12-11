@@ -18,19 +18,7 @@ func (c *Config) newStateCmd() *cobra.Command {
 	stateCmd := &cobra.Command{
 		Use:   "state",
 		Short: "Manipulate the state",
-		// Long: mustLongHelp("state"), // FIXME
-		Example: example("state"), // FIXME
 	}
-
-	createCmd := &cobra.Command{
-		Use:   "create",
-		Short: "Create the state if it does not already exist",
-		// Long: mustLongHelp("state", "create"), // FIXME
-		// Example: example("state", "create"), // FIXME
-		Args: cobra.NoArgs,
-		RunE: c.runStateCreateCmd,
-	}
-	stateCmd.AddCommand(createCmd)
 
 	dumpCmd := &cobra.Command{
 		Use:   "dump",
@@ -53,10 +41,6 @@ func (c *Config) newStateCmd() *cobra.Command {
 	stateCmd.AddCommand(resetCmd)
 
 	return stateCmd
-}
-
-func (c *Config) runStateCreateCmd(cmd *cobra.Command, args []string) error {
-	return c.baseSystem.PersistentState().OpenOrCreate()
 }
 
 func (c *Config) runStateDataCmd(cmd *cobra.Command, args []string) error {

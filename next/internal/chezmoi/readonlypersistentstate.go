@@ -29,11 +29,6 @@ func (s *readOnlyPersistentState) ForEach(bucket []byte, fn func(k, v []byte) er
 	return s.s.ForEach(bucket, fn)
 }
 
-// OpenOrCreate implements PersistentState.OpenOrCreate.
-func (s *readOnlyPersistentState) OpenOrCreate() error {
-	return s.s.OpenOrCreate()
-}
-
 // Set implements PersistentState.Set.
 func (s *readOnlyPersistentState) Set(bucket, key, value []byte) error {
 	return os.ErrPermission

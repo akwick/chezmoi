@@ -40,12 +40,6 @@ func (s *dryRunPersistentState) ForEach(bucket []byte, fn func(k, v []byte) erro
 	return s.s.ForEach(bucket, fn)
 }
 
-// OpenOrCreate implements PersistentState.OpenOrCreate.
-func (s *dryRunPersistentState) OpenOrCreate() error {
-	s.modified = true // FIXME this will give false negatives if s.s already exists, need to separate create from open
-	return s.s.OpenOrCreate()
-}
-
 // Set implements PersistentState.Set.
 func (s *dryRunPersistentState) Set(bucket, key, value []byte) error {
 	s.modified = true

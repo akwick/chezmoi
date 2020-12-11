@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
 	"go.etcd.io/bbolt"
 )
@@ -15,110 +16,138 @@ var _ PersistentState = &BoltPersistentState{}
 func TestBoltPersistentState(t *testing.T) {
 	t.Parallel()
 
-	fs, cleanup, err := vfst.NewTestFS(map[string]interface{}{
-		"/home/user/.config/chezmoi": &vfst.Dir{Perm: 0o755},
+	withTestFS(t, nil, func(t *testing.T, fs vfs.FS) {
+		var (
+			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
+			bucket = []byte("bucket")
+			key    = []byte("key")
+			value  = []byte("value")
+		)
+
+		b1, err := NewBoltPersistentState(fs, path, nil)
+		require.NoError(t, err)
+		vfst.RunTests(t, fs, "",
+			vfst.TestPath(path,
+				vfst.TestModeIsRegular,
+			),
+		)
+
+		actualValue, err := b1.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, []byte(nil), actualValue)
+
+		assert.NoError(t, b1.Set(bucket, key, value))
+		actualValue, err = b1.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, value, actualValue)
+
+		visited := false
+		require.NoError(t, b1.ForEach(bucket, func(k, v []byte) error {
+			visited = true
+			assert.Equal(t, key, k)
+			assert.Equal(t, value, v)
+			return nil
+		}))
+		require.True(t, visited)
+
+		require.NoError(t, b1.Close())
+
+		b2, err := NewBoltPersistentState(fs, path, nil)
+		require.NoError(t, err)
+
+		require.NoError(t, b2.Delete(bucket, key))
+
+		actualValue, err = b2.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, []byte(nil), actualValue)
 	})
-	require.NoError(t, err)
-	t.Cleanup(cleanup)
+}
 
-	path := "/home/user/.config/chezmoi/chezmoistate.boltdb"
-	b, err := NewBoltPersistentState(fs, path, nil)
-	require.NoError(t, err)
-	vfst.RunTests(t, fs, "",
-		vfst.TestPath(path,
-			vfst.TestDoesNotExist,
-		),
-	)
+func TestBoltPersistentStateMock(t *testing.T) {
+	t.Parallel()
 
-	var (
-		bucket = []byte("bucket")
-		key    = []byte("key")
-		value  = []byte("value")
-	)
+	withTestFS(t, nil, func(t *testing.T, fs vfs.FS) {
+		var (
+			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
+			bucket = []byte("bucket")
+			key    = []byte("key")
+			value1 = []byte("value1")
+			value2 = []byte("value2")
+		)
 
-	require.NoError(t, b.Delete(bucket, key))
-	vfst.RunTests(t, fs, "",
-		vfst.TestPath(path,
-			vfst.TestDoesNotExist,
-		),
-	)
+		b, err := NewBoltPersistentState(fs, path, nil)
+		require.NoError(t, err)
+		require.NoError(t, b.Set(bucket, key, value1))
 
-	actualValue, err := b.Get(bucket, key)
-	require.NoError(t, err)
-	assert.Equal(t, []byte(nil), actualValue)
-	vfst.RunTests(t, fs, "",
-		vfst.TestPath(path,
-			vfst.TestDoesNotExist,
-		),
-	)
+		m, err := b.Mock()
+		require.NoError(t, err)
 
-	assert.NoError(t, b.Set(bucket, key, value))
-	vfst.RunTests(t, fs, "",
-		vfst.TestPath(path,
-			vfst.TestModeIsRegular,
-		),
-	)
+		actualValue, err := m.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, value1, actualValue)
 
-	actualValue, err = b.Get(bucket, key)
-	require.NoError(t, err)
-	assert.Equal(t, value, actualValue)
+		require.NoError(t, m.Set(bucket, key, value2))
+		actualValue, err = m.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, value2, actualValue)
+		actualValue, err = b.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, value1, actualValue)
 
-	require.NoError(t, b.Close())
+		require.NoError(t, m.Delete(bucket, key))
+		actualValue, err = m.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Nil(t, actualValue)
+		actualValue, err = b.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, value1, actualValue)
 
-	b, err = NewBoltPersistentState(fs, path, nil)
-	require.NoError(t, err)
-
-	require.NoError(t, b.Delete(bucket, key))
-
-	actualValue, err = b.Get(bucket, key)
-	require.NoError(t, err)
-	assert.Equal(t, []byte(nil), actualValue)
+		require.NoError(t, b.Close())
+	})
 }
 
 func TestBoltPersistentStateReadOnly(t *testing.T) {
 	t.Parallel()
 
-	fs, cleanup, err := vfst.NewTestFS(map[string]interface{}{
-		"/home/user/.config/chezmoi": &vfst.Dir{Perm: 0o755},
+	withTestFS(t, nil, func(t *testing.T, fs vfs.FS) {
+		var (
+			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
+			bucket = []byte("bucket")
+			key    = []byte("key")
+			value  = []byte("value")
+		)
+
+		b1, err := NewBoltPersistentState(fs, path, nil)
+		require.NoError(t, err)
+		require.NoError(t, b1.Set(bucket, key, value))
+		require.NoError(t, b1.Close())
+
+		b2, err := NewBoltPersistentState(fs, path, &bbolt.Options{
+			ReadOnly: true,
+			Timeout:  1 * time.Second,
+		})
+		require.NoError(t, err)
+		defer b2.Close()
+
+		b3, err := NewBoltPersistentState(fs, path, &bbolt.Options{
+			ReadOnly: true,
+			Timeout:  1 * time.Second,
+		})
+		require.NoError(t, err)
+		defer b3.Close()
+
+		actualValueB, err := b2.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, value, actualValueB)
+
+		actualValueC, err := b3.Get(bucket, key)
+		require.NoError(t, err)
+		assert.Equal(t, value, actualValueC)
+
+		assert.Error(t, b2.Set(bucket, key, value))
+		assert.Error(t, b3.Set(bucket, key, value))
+
+		require.NoError(t, b2.Close())
+		require.NoError(t, b3.Close())
 	})
-	require.NoError(t, err)
-	t.Cleanup(cleanup)
-
-	path := "/home/user/.config/chezmoi/chezmoistate.boltdb"
-	bucket := []byte("bucket")
-	key := []byte("key")
-	value := []byte("value")
-
-	a, err := NewBoltPersistentState(fs, path, nil)
-	require.NoError(t, err)
-	require.NoError(t, a.Set(bucket, key, value))
-	require.NoError(t, a.Close())
-
-	b, err := NewBoltPersistentState(fs, path, &bbolt.Options{
-		ReadOnly: true,
-		Timeout:  1 * time.Second,
-	})
-	require.NoError(t, err)
-	defer b.Close()
-
-	c, err := NewBoltPersistentState(fs, path, &bbolt.Options{
-		ReadOnly: true,
-		Timeout:  1 * time.Second,
-	})
-	require.NoError(t, err)
-	defer c.Close()
-
-	actualValueB, err := b.Get(bucket, key)
-	require.NoError(t, err)
-	assert.Equal(t, value, actualValueB)
-
-	actualValueC, err := c.Get(bucket, key)
-	require.NoError(t, err)
-	assert.Equal(t, value, actualValueC)
-
-	assert.Error(t, b.Set(bucket, key, value))
-	assert.Error(t, c.Set(bucket, key, value))
-
-	require.NoError(t, b.Close())
-	require.NoError(t, c.Close())
 }
