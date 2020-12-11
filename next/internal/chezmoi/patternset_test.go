@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	vfs "github.com/twpayne/go-vfs"
+
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 func TestPatternSet(t *testing.T) {
@@ -137,7 +139,7 @@ func TestPatternSetGlob(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			withTestFS(t, tc.root, func(fs vfs.FS) {
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
 				actualMatches, err := tc.ps.glob(fs, "/")
 				require.NoError(t, err)
 				assert.Equal(t, tc.expectedMatches, actualMatches)

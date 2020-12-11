@@ -214,7 +214,7 @@ func TestSourceStateAdd(t *testing.T) {
 
 			chezmoitest.SkipUnlessGOOS(t, tc.name)
 
-			withTestFS(t, map[string]interface{}{
+			chezmoitest.WithTestFS(t, map[string]interface{}{
 				"/home/user": map[string]interface{}{
 					".bashrc": "# contents of .bashrc\n",
 					".ssh": &vfst.Dir{
@@ -457,7 +457,7 @@ func TestSourceStateApplyAll(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			withTestFS(t, tc.root, func(fs vfs.FS) {
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
 				system := newTestRealSystem(fs)
 				sourceStateOptions := []SourceStateOption{
 					WithDestDir("/home/user"),
@@ -523,7 +523,7 @@ func TestSourceStateSortedTargetNames(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			withTestFS(t, tc.root, func(fs vfs.FS) {
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
 				s := NewSourceState(
 					WithSourceDir("/home/user/.local/share/chezmoi"),
 					WithSystem(newTestRealSystem(fs)),
@@ -1002,7 +1002,7 @@ func TestSourceStateRead(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			withTestFS(t, tc.root, func(fs vfs.FS) {
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
 				s := NewSourceState(
 					WithDestDir("/home/user"),
 					WithSourceDir("/home/user/.local/share/chezmoi"),

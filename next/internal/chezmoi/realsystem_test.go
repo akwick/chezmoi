@@ -8,6 +8,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	vfs "github.com/twpayne/go-vfs"
+
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 var _ System = &RealSystem{}
@@ -15,7 +17,7 @@ var _ System = &RealSystem{}
 // FIXME this test fails when parallelized.
 //nolint:paralleltest,tparallel
 func TestRealSystemGlob(t *testing.T) {
-	withTestFS(t, map[string]interface{}{
+	chezmoitest.WithTestFS(t, map[string]interface{}{
 		"/home/user": map[string]interface{}{
 			"bar":            "",
 			"baz":            "",

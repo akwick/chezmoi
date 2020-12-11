@@ -10,6 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	vfs "github.com/twpayne/go-vfs"
+
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 var _ System = &TARSystem{}
@@ -18,7 +20,7 @@ var _ System = &TARSystem{}
 func TestTARSystem(t *testing.T) {
 	t.Parallel()
 
-	withTestFS(t, map[string]interface{}{
+	chezmoitest.WithTestFS(t, map[string]interface{}{
 		"/home/user/.local/share/chezmoi": map[string]interface{}{
 			".chezmoiignore":  "README.md\n",
 			".chezmoiremove":  "*.txt\n",

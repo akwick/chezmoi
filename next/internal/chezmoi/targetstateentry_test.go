@@ -12,6 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	vfs "github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
+	
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 func TestEntryStateMarshal(t *testing.T) {
@@ -129,7 +131,7 @@ func TestTargetStateEntryApplyAndEqual(t *testing.T) {
 			targetState := targetStates[tc.TargetStateKey]
 			actualState := actualStates[tc.ActualDestDirStateKey]
 
-			withTestFS(t, actualState, func(fs vfs.FS) {
+			chezmoitest.WithTestFS(t, actualState, func(fs vfs.FS) {
 				s := newTestRealSystem(fs)
 
 				// Read the initial destination state entry from fs.

@@ -6,6 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 	"github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
 	"go.etcd.io/bbolt"
@@ -16,7 +17,7 @@ var _ PersistentState = &BoltPersistentState{}
 func TestBoltPersistentState(t *testing.T) {
 	t.Parallel()
 
-	withTestFS(t, nil, func(fs vfs.FS) {
+	chezmoitest.WithTestFS(t, nil, func(fs vfs.FS) {
 		var (
 			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
 			bucket = []byte("bucket")
@@ -66,7 +67,7 @@ func TestBoltPersistentState(t *testing.T) {
 func TestBoltPersistentStateMock(t *testing.T) {
 	t.Parallel()
 
-	withTestFS(t, nil, func(fs vfs.FS) {
+	chezmoitest.WithTestFS(t, nil, func(fs vfs.FS) {
 		var (
 			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
 			bucket = []byte("bucket")
@@ -109,7 +110,7 @@ func TestBoltPersistentStateMock(t *testing.T) {
 func TestBoltPersistentStateReadOnly(t *testing.T) {
 	t.Parallel()
 
-	withTestFS(t, nil, func(fs vfs.FS) {
+	chezmoitest.WithTestFS(t, nil, func(fs vfs.FS) {
 		var (
 			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
 			bucket = []byte("bucket")
