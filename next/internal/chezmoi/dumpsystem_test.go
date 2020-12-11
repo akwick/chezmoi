@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/twpayne/go-vfs/vfst"
+	vfs "github.com/twpayne/go-vfs"
 )
 
 var _ System = &DumpSystem{}
@@ -13,7 +13,7 @@ var _ System = &DumpSystem{}
 func TestDumpSystem(t *testing.T) {
 	t.Parallel()
 
-	fs, cleanup, err := vfst.NewTestFS(map[string]interface{}{
+	withTestFS(t, map[string]interface{}{
 		"/home/user/.local/share/chezmoi": map[string]interface{}{
 			".chezmoiignore":  "README.md\n",
 			".chezmoiremove":  "*.txt\n",
@@ -28,42 +28,40 @@ func TestDumpSystem(t *testing.T) {
 			"run_script":      "#!/bin/sh\n",
 			"symlink_symlink": "bar",
 		},
+	}, func(fs vfs.FS) {
+		s := NewSourceState(
+			WithSourceDir("/home/user/.local/share/chezmoi"),
+			WithSystem(newTestRealSystem(fs)),
+		)
+		require.NoError(t, s.Read())
+		require.NoError(t, s.Evaluate())
+
+		dumpSystem := NewDumpSystem()
+		require.NoError(t, s.applyAll(dumpSystem, "", ApplyOptions{}))
+		expectedData := map[string]interface{}{
+			"dir": &dirData{
+				Type: dataTypeDir,
+				Name: "dir",
+				Perm: 0o777,
+			},
+			"dir/foo": &fileData{
+				Type:     dataTypeFile,
+				Name:     "dir/foo",
+				Contents: "bar",
+				Perm:     0o666,
+			},
+			"script": &scriptData{
+				Type:     dataTypeScript,
+				Name:     "script",
+				Contents: "#!/bin/sh\n",
+			},
+			"symlink": &symlinkData{
+				Type:     dataTypeSymlink,
+				Name:     "symlink",
+				Linkname: "bar",
+			},
+		}
+		actualData := dumpSystem.Data()
+		assert.Equal(t, expectedData, actualData)
 	})
-	require.NoError(t, err)
-	t.Cleanup(cleanup)
-
-	s := NewSourceState(
-		WithSourceDir("/home/user/.local/share/chezmoi"),
-		WithSystem(newTestRealSystem(fs)),
-	)
-	require.NoError(t, s.Read())
-	require.NoError(t, s.Evaluate())
-
-	dumpSystem := NewDumpSystem()
-	require.NoError(t, s.applyAll(dumpSystem, "", ApplyOptions{}))
-	expectedData := map[string]interface{}{
-		"dir": &dirData{
-			Type: dataTypeDir,
-			Name: "dir",
-			Perm: 0o777,
-		},
-		"dir/foo": &fileData{
-			Type:     dataTypeFile,
-			Name:     "dir/foo",
-			Contents: "bar",
-			Perm:     0o666,
-		},
-		"script": &scriptData{
-			Type:     dataTypeScript,
-			Name:     "script",
-			Contents: "#!/bin/sh\n",
-		},
-		"symlink": &symlinkData{
-			Type:     dataTypeSymlink,
-			Name:     "symlink",
-			Linkname: "bar",
-		},
-	}
-	actualData := dumpSystem.Data()
-	assert.Equal(t, expectedData, actualData)
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/coreos/go-semver/semver"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	vfs "github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
 
 	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
@@ -213,7 +214,7 @@ func TestSourceStateAdd(t *testing.T) {
 
 			chezmoitest.SkipUnlessGOOS(t, tc.name)
 
-			fs, cleanup, err := vfst.NewTestFS(map[string]interface{}{
+			withTestFS(t, map[string]interface{}{
 				"/home/user": map[string]interface{}{
 					".bashrc": "# contents of .bashrc\n",
 					".ssh": &vfst.Dir{
@@ -224,29 +225,28 @@ func TestSourceStateAdd(t *testing.T) {
 					},
 					".local/share/chezmoi": &vfst.Dir{Perm: 0o777},
 				},
+			}, func(fs vfs.FS) {
+				if tc.extraRoot != nil {
+					require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
+				}
+				system := newTestRealSystem(fs)
+
+				s := NewSourceState(
+					WithDestDir("/home/user"),
+					WithSourceDir("/home/user/.local/share/chezmoi"),
+					WithSystem(system),
+				)
+				require.NoError(t, s.Read())
+				require.NoError(t, s.Evaluate())
+
+				destPathInfos := make(map[string]os.FileInfo)
+				for _, destPath := range tc.destPaths {
+					require.NoError(t, s.AddDestPathInfos(destPathInfos, system, destPath, nil))
+				}
+				require.NoError(t, s.Add(system, destPathInfos, &tc.addOptions))
+
+				vfst.RunTests(t, fs, "", tc.tests...)
 			})
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-			if tc.extraRoot != nil {
-				require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
-			}
-			system := newTestRealSystem(fs)
-
-			s := NewSourceState(
-				WithDestDir("/home/user"),
-				WithSourceDir("/home/user/.local/share/chezmoi"),
-				WithSystem(system),
-			)
-			require.NoError(t, s.Read())
-			require.NoError(t, s.Evaluate())
-
-			destPathInfos := make(map[string]os.FileInfo)
-			for _, destPath := range tc.destPaths {
-				require.NoError(t, s.AddDestPathInfos(destPathInfos, system, destPath, nil))
-			}
-			require.NoError(t, s.Add(system, destPathInfos, &tc.addOptions))
-
-			vfst.RunTests(t, fs, "", tc.tests...)
 		})
 	}
 }
@@ -457,25 +457,23 @@ func TestSourceStateApplyAll(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			fs, cleanup, err := vfst.NewTestFS(tc.root)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
+			withTestFS(t, tc.root, func(fs vfs.FS) {
+				system := newTestRealSystem(fs)
+				sourceStateOptions := []SourceStateOption{
+					WithDestDir("/home/user"),
+					WithSourceDir("/home/user/.local/share/chezmoi"),
+					WithSystem(system),
+				}
+				sourceStateOptions = append(sourceStateOptions, tc.sourceStateOptions...)
+				s := NewSourceState(sourceStateOptions...)
+				require.NoError(t, s.Read())
+				require.NoError(t, s.Evaluate())
+				require.NoError(t, s.applyAll(system, "/home/user", ApplyOptions{
+					Umask: GetUmask(),
+				}))
 
-			system := newTestRealSystem(fs)
-			sourceStateOptions := []SourceStateOption{
-				WithDestDir("/home/user"),
-				WithSourceDir("/home/user/.local/share/chezmoi"),
-				WithSystem(system),
-			}
-			sourceStateOptions = append(sourceStateOptions, tc.sourceStateOptions...)
-			s := NewSourceState(sourceStateOptions...)
-			require.NoError(t, s.Read())
-			require.NoError(t, s.Evaluate())
-			require.NoError(t, s.applyAll(system, "/home/user", ApplyOptions{
-				Umask: GetUmask(),
-			}))
-
-			vfst.RunTests(t, fs, "", tc.tests...)
+				vfst.RunTests(t, fs, "", tc.tests...)
+			})
 		})
 	}
 }
@@ -525,16 +523,14 @@ func TestSourceStateSortedTargetNames(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			fs, cleanup, err := vfst.NewTestFS(tc.root)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-
-			s := NewSourceState(
-				WithSourceDir("/home/user/.local/share/chezmoi"),
-				WithSystem(newTestRealSystem(fs)),
-			)
-			require.NoError(t, s.Read())
-			assert.Equal(t, tc.expectedSortedTargetNames, s.AllTargetNames())
+			withTestFS(t, tc.root, func(fs vfs.FS) {
+				s := NewSourceState(
+					WithSourceDir("/home/user/.local/share/chezmoi"),
+					WithSystem(newTestRealSystem(fs)),
+				)
+				require.NoError(t, s.Read())
+				assert.Equal(t, tc.expectedSortedTargetNames, s.AllTargetNames())
+			})
 		})
 	}
 }
@@ -1006,29 +1002,26 @@ func TestSourceStateRead(t *testing.T) {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-
-			fs, cleanup, err := vfst.NewTestFS(tc.root)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-
-			s := NewSourceState(
-				WithDestDir("/home/user"),
-				WithSourceDir("/home/user/.local/share/chezmoi"),
-				WithSystem(newTestRealSystem(fs)),
-			)
-			err = s.Read()
-			if tc.expectedError != "" {
-				assert.Error(t, err)
-				assert.Equal(t, tc.expectedError, err.Error())
-				return
-			}
-			require.NoError(t, err)
-			require.NoError(t, s.Evaluate())
-			tc.expectedSourceState.destDir = "/home/user"
-			tc.expectedSourceState.sourceDir = "/home/user/.local/share/chezmoi"
-			require.NoError(t, tc.expectedSourceState.Evaluate())
-			s.system = nil
-			assert.Equal(t, tc.expectedSourceState, s)
+			withTestFS(t, tc.root, func(fs vfs.FS) {
+				s := NewSourceState(
+					WithDestDir("/home/user"),
+					WithSourceDir("/home/user/.local/share/chezmoi"),
+					WithSystem(newTestRealSystem(fs)),
+				)
+				err := s.Read()
+				if tc.expectedError != "" {
+					assert.Error(t, err)
+					assert.Equal(t, tc.expectedError, err.Error())
+					return
+				}
+				require.NoError(t, err)
+				require.NoError(t, s.Evaluate())
+				tc.expectedSourceState.destDir = "/home/user"
+				tc.expectedSourceState.sourceDir = "/home/user/.local/share/chezmoi"
+				require.NoError(t, tc.expectedSourceState.Evaluate())
+				s.system = nil
+				assert.Equal(t, tc.expectedSourceState, s)
+			})
 		})
 	}
 }

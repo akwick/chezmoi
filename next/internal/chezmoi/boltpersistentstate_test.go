@@ -16,7 +16,7 @@ var _ PersistentState = &BoltPersistentState{}
 func TestBoltPersistentState(t *testing.T) {
 	t.Parallel()
 
-	withTestFS(t, nil, func(t *testing.T, fs vfs.FS) {
+	withTestFS(t, nil, func(fs vfs.FS) {
 		var (
 			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
 			bucket = []byte("bucket")
@@ -66,7 +66,7 @@ func TestBoltPersistentState(t *testing.T) {
 func TestBoltPersistentStateMock(t *testing.T) {
 	t.Parallel()
 
-	withTestFS(t, nil, func(t *testing.T, fs vfs.FS) {
+	withTestFS(t, nil, func(fs vfs.FS) {
 		var (
 			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
 			bucket = []byte("bucket")
@@ -109,7 +109,7 @@ func TestBoltPersistentStateMock(t *testing.T) {
 func TestBoltPersistentStateReadOnly(t *testing.T) {
 	t.Parallel()
 
-	withTestFS(t, nil, func(t *testing.T, fs vfs.FS) {
+	withTestFS(t, nil, func(fs vfs.FS) {
 		var (
 			path   = "/home/user/.config/chezmoi/chezmoistate.boltdb"
 			bucket = []byte("bucket")

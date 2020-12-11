@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	vfs "github.com/twpayne/go-vfs"
-	"github.com/twpayne/go-vfs/vfst"
 )
 
 var _ System = &RealSystem{}
@@ -16,7 +15,7 @@ var _ System = &RealSystem{}
 // FIXME this test fails when parallelized.
 //nolint:paralleltest,tparallel
 func TestRealSystemGlob(t *testing.T) {
-	fs, cleanup, err := vfst.NewTestFS(map[string]interface{}{
+	withTestFS(t, map[string]interface{}{
 		"/home/user": map[string]interface{}{
 			"bar":            "",
 			"baz":            "",
@@ -25,45 +24,43 @@ func TestRealSystemGlob(t *testing.T) {
 			"dir/foo":        "",
 			"dir/subdir/foo": "",
 		},
+	}, func(fs vfs.FS) {
+		s := newTestRealSystem(fs)
+		for _, tc := range []struct {
+			pattern         string
+			expectedMatches []string
+		}{
+			{
+				pattern: "/home/user/foo",
+				expectedMatches: []string{
+					"/home/user/foo",
+				},
+			},
+			{
+				pattern: "/home/user/**/foo",
+				expectedMatches: []string{
+					"/home/user/dir/foo",
+					"/home/user/dir/subdir/foo",
+					"/home/user/foo",
+				},
+			},
+			{
+				pattern: "/home/user/**/ba*",
+				expectedMatches: []string{
+					"/home/user/bar",
+					"/home/user/baz",
+					"/home/user/dir/bar",
+				},
+			},
+		} {
+			t.Run(tc.pattern, func(t *testing.T) {
+				actualMatches, err := s.Glob(tc.pattern)
+				require.NoError(t, err)
+				sort.Strings(actualMatches)
+				assert.Equal(t, tc.expectedMatches, pathsToSlashes(actualMatches))
+			})
+		}
 	})
-	require.NoError(t, err)
-	t.Cleanup(cleanup)
-
-	s := newTestRealSystem(fs)
-	for _, tc := range []struct {
-		pattern         string
-		expectedMatches []string
-	}{
-		{
-			pattern: "/home/user/foo",
-			expectedMatches: []string{
-				"/home/user/foo",
-			},
-		},
-		{
-			pattern: "/home/user/**/foo",
-			expectedMatches: []string{
-				"/home/user/dir/foo",
-				"/home/user/dir/subdir/foo",
-				"/home/user/foo",
-			},
-		},
-		{
-			pattern: "/home/user/**/ba*",
-			expectedMatches: []string{
-				"/home/user/bar",
-				"/home/user/baz",
-				"/home/user/dir/bar",
-			},
-		},
-	} {
-		t.Run(tc.pattern, func(t *testing.T) {
-			actualMatches, err := s.Glob(tc.pattern)
-			require.NoError(t, err)
-			sort.Strings(actualMatches)
-			assert.Equal(t, tc.expectedMatches, pathsToSlashes(actualMatches))
-		})
-	}
 }
 
 func newTestRealSystem(fs vfs.FS) *RealSystem {

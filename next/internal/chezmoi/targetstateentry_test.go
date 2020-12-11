@@ -10,6 +10,7 @@ import (
 	"github.com/muesli/combinator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	vfs "github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
 )
 
@@ -128,30 +129,29 @@ func TestTargetStateEntryApplyAndEqual(t *testing.T) {
 			targetState := targetStates[tc.TargetStateKey]
 			actualState := actualStates[tc.ActualDestDirStateKey]
 
-			fs, cleanup, err := vfst.NewTestFS(actualState)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-			s := newTestRealSystem(fs)
+			withTestFS(t, actualState, func(fs vfs.FS) {
+				s := newTestRealSystem(fs)
 
-			// Read the initial destination state entry from fs.
-			actualStateEntry, err := NewActualStateEntry(s, "/home/user/target")
-			require.NoError(t, err)
+				// Read the initial destination state entry from fs.
+				actualStateEntry, err := NewActualStateEntry(s, "/home/user/target")
+				require.NoError(t, err)
 
-			// Apply the target state entry.
-			targetSystem := newTestRealSystem(fs)
-			require.NoError(t, targetState.Apply(targetSystem, actualStateEntry, GetUmask()))
+				// Apply the target state entry.
+				targetSystem := newTestRealSystem(fs)
+				require.NoError(t, targetState.Apply(targetSystem, actualStateEntry, GetUmask()))
 
-			// Verify that the actual state entry matches the desired
-			// state.
-			vfst.RunTests(t, fs, "", vfst.TestPath("/home/user/target", targetStateTest(t, targetState)...))
+				// Verify that the actual state entry matches the desired
+				// state.
+				vfst.RunTests(t, fs, "", vfst.TestPath("/home/user/target", targetStateTest(t, targetState)...))
 
-			// Read the updated destination state entry from fs and
-			// verify that it is equal to the target state entry.
-			newActualStateEntry, err := NewActualStateEntry(s, "/home/user/target")
-			require.NoError(t, err)
-			equal, err := targetState.Equal(newActualStateEntry, GetUmask())
-			require.NoError(t, err)
-			require.True(t, equal)
+				// Read the updated destination state entry from fs and
+				// verify that it is equal to the target state entry.
+				newActualStateEntry, err := NewActualStateEntry(s, "/home/user/target")
+				require.NoError(t, err)
+				equal, err := targetState.Equal(newActualStateEntry, GetUmask())
+				require.NoError(t, err)
+				require.True(t, equal)
+			})
 		})
 	}
 }

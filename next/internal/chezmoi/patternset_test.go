@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/twpayne/go-vfs/vfst"
+	vfs "github.com/twpayne/go-vfs"
 )
 
 func TestPatternSet(t *testing.T) {
@@ -137,13 +137,11 @@ func TestPatternSetGlob(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			fs, cleanup, err := vfst.NewTestFS(tc.root)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-
-			actualMatches, err := tc.ps.glob(fs, "/")
-			require.NoError(t, err)
-			assert.Equal(t, tc.expectedMatches, actualMatches)
+			withTestFS(t, tc.root, func(fs vfs.FS) {
+				actualMatches, err := tc.ps.glob(fs, "/")
+				require.NoError(t, err)
+				assert.Equal(t, tc.expectedMatches, actualMatches)
+			})
 		})
 	}
 }
