@@ -215,14 +215,9 @@ func (c *Config) createConfigFile(filename string, data []byte) ([]byte, error) 
 		return nil, err
 	}
 
-	templateData, err := c.defaultTemplateData()
-	if err != nil {
-		return nil, err
-	}
-
 	sb := strings.Builder{}
 	if err = t.Execute(&sb, map[string]interface{}{
-		"chezmoi": templateData,
+		"chezmoi": c.defaultTemplateData(),
 	}); err != nil {
 		return nil, err
 	}

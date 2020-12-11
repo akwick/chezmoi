@@ -354,7 +354,7 @@ func (c *Config) cmdOutput(dir, name string, args []string) ([]byte, error) {
 	return c.baseSystem.IdempotentCmdOutput(cmd)
 }
 
-func (c *Config) defaultTemplateData() (map[string]interface{}, error) {
+func (c *Config) defaultTemplateData() map[string]interface{} {
 	data := map[string]interface{}{
 		"arch":      runtime.GOARCH,
 		"os":        runtime.GOOS,
@@ -420,7 +420,7 @@ func (c *Config) defaultTemplateData() (map[string]interface{}, error) {
 
 	return map[string]interface{}{
 		"chezmoi": data,
-	}, nil
+	}
 }
 
 func (c *Config) destPath(arg *chezmoi.OSPath) (string, error) {
@@ -843,8 +843,14 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 		c.sourceSystem = chezmoi.NewReadOnlySystem(c.sourceSystem)
 	}
 	if c.dryRun {
-		c.sourceSystem = chezmoi.NewDryRunSystem(c.sourceSystem)
-		c.destSystem = chezmoi.NewDryRunSystem(c.destSystem)
+		c.sourceSystem, err = chezmoi.NewDryRunSystem(c.sourceSystem)
+		if err != nil {
+			return err
+		}
+		c.destSystem, err = chezmoi.NewDryRunSystem(c.destSystem)
+		if err != nil {
+			return err
+		}
 	}
 	if c.verbose {
 		c.sourceSystem = chezmoi.NewGitDiffSystem(c.sourceSystem, c.stdout, c.absSlashSourceDir, c.color)
@@ -978,17 +984,12 @@ func (c *Config) runEditor(args []string) error {
 }
 
 func (c *Config) sourceState() (*chezmoi.SourceState, error) {
-	defaultTemplateData, err := c.defaultTemplateData()
-	if err != nil {
-		return nil, err
-	}
-
 	s := chezmoi.NewSourceState(
 		chezmoi.WithDestDir(c.absSlashDestDir),
 		chezmoi.WithPriorityTemplateData(c.Data),
 		chezmoi.WithSourceDir(c.absSlashSourceDir),
 		chezmoi.WithSystem(c.sourceSystem),
-		chezmoi.WithTemplateData(defaultTemplateData),
+		chezmoi.WithTemplateData(c.defaultTemplateData()),
 		chezmoi.WithTemplateFuncs(c.templateFuncs),
 		chezmoi.WithTemplateOptions(c.Template.Options),
 	)

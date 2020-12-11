@@ -5,9 +5,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
 
 	"github.com/twpayne/chezmoi/next/internal/chezmoi"
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 func TestApplyCmd(t *testing.T) {
@@ -121,7 +123,7 @@ func TestApplyCmd(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			fs, cleanup, err := vfst.NewTestFS(map[string]interface{}{
+			chezmoitest.WithTestFS(t, map[string]interface{}{
 				"/home/user/.local/share/chezmoi": map[string]interface{}{
 					"dot_absent":            "",
 					"empty_dot_hushlogin":   "",
@@ -139,10 +141,7 @@ func TestApplyCmd(t *testing.T) {
 					},
 					"symlink_dot_symlink": ".bashrc",
 				},
-			})
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-
+			}, func(fs vfs.FS){
 			if tc.extraRoot != nil {
 				require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
 			}
@@ -151,5 +150,6 @@ func TestApplyCmd(t *testing.T) {
 
 			vfst.RunTests(t, fs, "", tc.tests)
 		})
+	})
 	}
 }

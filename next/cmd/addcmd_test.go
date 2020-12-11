@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
 
 	"github.com/twpayne/chezmoi/next/internal/chezmoi"
@@ -158,13 +159,10 @@ func TestAddCmd(t *testing.T) {
 			chezmoitest.SkipUnlessGOOS(t, tc.name)
 			t.Parallel()
 
-			fs, cleanup, err := vfst.NewTestFS(tc.root)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-
-			require.NoError(t, newTestConfig(t, fs).execute(append([]string{"add"}, tc.args...)))
-
-			vfst.RunTests(t, fs, "", tc.tests...)
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS){
+				require.NoError(t, newTestConfig(t, fs).execute(append([]string{"add"}, tc.args...)))
+				vfst.RunTests(t, fs, "", tc.tests...)
+			})
 		})
 	}
 }

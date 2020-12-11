@@ -5,8 +5,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/twpayne/go-vfs/vfst"
+	"github.com/twpayne/go-vfs"
+
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 //nolint:tparallel
@@ -56,13 +58,11 @@ func TestGetKernelInfo(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			fs, cleanup, err := vfst.NewTestFS(tc.root)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-
-			actual, err := getKernelInfo(fs)
-			assert.NoError(t, err)
-			assert.Equal(t, tc.expectedKernelInfo, actual)
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS){
+				actual, err := getKernelInfo(fs)
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expectedKernelInfo, actual)
+				})
 		})
 	}
 }
@@ -140,13 +140,11 @@ func TestGetOSRelease(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			fs, cleanup, err := vfst.NewTestFS(tc.root)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-
-			actual, err := getOSRelease(fs)
-			assert.NoError(t, err)
-			assert.Equal(t, tc.expected, actual)
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS){
+				actual, err := getOSRelease(fs)
+				assert.NoError(t, err)
+				assert.Equal(t, tc.expected, actual)
+				})
 		})
 	}
 }

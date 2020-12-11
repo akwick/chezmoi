@@ -1,6 +1,3 @@
-chezmoi state create
-exists $CHEZMOICONFIGDIR/chezmoistate.boltdb
-
 chezmoi state dump
 stdout scriptOnce
 
