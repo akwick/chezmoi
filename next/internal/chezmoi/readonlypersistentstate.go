@@ -14,6 +14,11 @@ func newReadOnlyPersistentState(s PersistentState) PersistentState {
 	}
 }
 
+// CopyTo implements PersistentState.CopyTo.
+func (s *readOnlyPersistentState) CopyTo(p PersistentState) error {
+	return s.s.CopyTo(p)
+}
+
 // Get implements PersistentState.Get.
 func (s *readOnlyPersistentState) Get(bucket, key []byte) ([]byte, error) {
 	return s.s.Get(bucket, key)

@@ -11,16 +11,20 @@ import (
 // a wrapped System.
 type DryRunSystem struct {
 	s        System
-	ps       *dryRunPersistentState
+	ps       PersistentState
 	modified bool
 }
 
 // NewDryRunSystem returns a new DryRunSystem that wraps fs.
-func NewDryRunSystem(s System) *DryRunSystem {
+func NewDryRunSystem(s System) (*DryRunSystem, error) {
+	ps := NewMockPersistentState()
+	if err := s.PersistentState().CopyTo(ps); err != nil {
+		return nil, err
+	}
 	return &DryRunSystem{
 		s:  s,
-		ps: newDryRunPersistentState(s.PersistentState()),
-	}
+		ps: ps,
+	}, nil
 }
 
 // Chmod implements System.Chmod.

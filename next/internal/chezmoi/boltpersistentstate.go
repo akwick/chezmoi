@@ -35,6 +35,17 @@ func (b *BoltPersistentState) Close() error {
 	return b.db.Close()
 }
 
+// CopyTo copies b to p.
+func (b *BoltPersistentState) CopyTo(p PersistentState) error {
+	return b.db.View(func(tx *bbolt.Tx) error {
+		return tx.ForEach(func(bucket []byte, b *bbolt.Bucket) error {
+			return b.ForEach(func(key, value []byte) error {
+				return p.Set(bucket, key, value)
+			})
+		})
+	})
+}
+
 // Delete deletes the value associate with key in bucket. If bucket or key does
 // not exist then Delete does nothing.
 func (b *BoltPersistentState) Delete(bucket, key []byte) error {
@@ -75,21 +86,6 @@ func (b *BoltPersistentState) ForEach(bucket []byte, fn func(k, v []byte) error)
 		}
 		return b.ForEach(fn)
 	})
-}
-
-// Mock returns a MockPeristentState with the contents of b.
-func (b *BoltPersistentState) Mock() (*MockPersistentState, error) {
-	m := NewMockPersistentState()
-	if err := b.db.View(func(tx *bbolt.Tx) error {
-		return tx.ForEach(func(name []byte, b *bbolt.Bucket) error {
-			return b.ForEach(func(k, v []byte) error {
-				return m.Set(name, k, v)
-			})
-		})
-	}); err != nil {
-		return nil, err
-	}
-	return m, nil
 }
 
 // Set sets the value associated with key in bucket. bucket will be created if

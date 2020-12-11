@@ -4,6 +4,7 @@ package chezmoi
 // for all reads and silently consumes all writes.
 type nullPersistentState struct{}
 
+func (nullPersistentState) CopyTo(s PersistentState) error                          { return nil }
 func (nullPersistentState) Get(bucket, key []byte) ([]byte, error)                  { return nil, nil }
 func (nullPersistentState) Delete(bucket, key []byte) error                         { return nil }
 func (nullPersistentState) ForEach(bucket []byte, fn func(k, v []byte) error) error { return nil }

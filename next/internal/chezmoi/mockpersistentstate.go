@@ -12,6 +12,18 @@ func NewMockPersistentState() *MockPersistentState {
 	}
 }
 
+// CopyTo implements PersistentState.CopyTo.
+func (s *MockPersistentState) CopyTo(p PersistentState) error {
+	for bucket, bucketMap := range s.buckets {
+		for key, value := range bucketMap {
+			if err := p.Set([]byte(bucket), []byte(key), value); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 // Delete implements PersistentState.Delete.
 func (s *MockPersistentState) Delete(bucket, key []byte) error {
 	bucketMap, ok := s.buckets[string(bucket)]

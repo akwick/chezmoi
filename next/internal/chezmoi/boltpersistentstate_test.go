@@ -6,10 +6,11 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 	"github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
 	"go.etcd.io/bbolt"
+
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 var _ PersistentState = &BoltPersistentState{}
@@ -80,8 +81,8 @@ func TestBoltPersistentStateMock(t *testing.T) {
 		require.NoError(t, err)
 		require.NoError(t, b.Set(bucket, key, value1))
 
-		m, err := b.Mock()
-		require.NoError(t, err)
+		m := NewMockPersistentState()
+		require.NoError(t, b.CopyTo(m), err)
 
 		actualValue, err := m.Get(bucket, key)
 		require.NoError(t, err)

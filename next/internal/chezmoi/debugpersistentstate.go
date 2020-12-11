@@ -17,6 +17,15 @@ func newDebugPersistentState(s PersistentState, logger zerolog.Logger) *debugPer
 	}
 }
 
+// CopyTo implements PersistentState.CopyTo.
+func (s *debugPersistentState) CopyTo(p PersistentState) error {
+	err := s.s.CopyTo(p)
+	s.logger.Debug().
+		Err(err).
+		Msg("CopyTo")
+	return err
+}
+
 // Delete implements PersistentState.Delete.
 func (s *debugPersistentState) Delete(bucket, key []byte) error {
 	err := s.s.Delete(bucket, key)
