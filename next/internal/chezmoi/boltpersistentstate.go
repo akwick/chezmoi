@@ -13,6 +13,8 @@ type BoltPersistentState struct {
 }
 
 // NewBoltPersistentState returns a new BoltPersistentState. options is mutated.
+//
+//nolint:interfacer
 func NewBoltPersistentState(fs vfs.FS, path string, options *bbolt.Options) (*BoltPersistentState, error) {
 	if err := vfs.MkdirAll(fs, filepath.Dir(path), 0o777); err != nil {
 		return nil, err

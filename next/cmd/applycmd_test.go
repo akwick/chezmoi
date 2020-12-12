@@ -141,15 +141,15 @@ func TestApplyCmd(t *testing.T) {
 					},
 					"symlink_dot_symlink": ".bashrc",
 				},
-			}, func(fs vfs.FS){
-			if tc.extraRoot != nil {
-				require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
-			}
+			}, func(fs vfs.FS) {
+				if tc.extraRoot != nil {
+					require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
+				}
 
-			require.NoError(t, newTestConfig(t, fs).execute(append([]string{"apply"}, tc.args...)))
+				require.NoError(t, newTestConfig(t, fs).execute(append([]string{"apply"}, tc.args...)))
 
-			vfst.RunTests(t, fs, "", tc.tests)
+				vfst.RunTests(t, fs, "", tc.tests)
+			})
 		})
-	})
 	}
 }

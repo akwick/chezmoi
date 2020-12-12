@@ -159,7 +159,7 @@ func TestAddCmd(t *testing.T) {
 			chezmoitest.SkipUnlessGOOS(t, tc.name)
 			t.Parallel()
 
-			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS){
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
 				require.NoError(t, newTestConfig(t, fs).execute(append([]string{"add"}, tc.args...)))
 				vfst.RunTests(t, fs, "", tc.tests...)
 			})

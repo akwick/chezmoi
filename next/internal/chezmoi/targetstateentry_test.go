@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	vfs "github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
-	
+
 	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
