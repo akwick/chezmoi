@@ -8,25 +8,23 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	vfs "github.com/twpayne/go-vfs"
-	"github.com/twpayne/go-vfs/vfst"
 	xdg "github.com/twpayne/go-xdg/v3"
 
 	"github.com/twpayne/chezmoi/next/internal/chezmoi"
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 func TestAddTemplateFuncPanic(t *testing.T) {
 	t.Parallel()
 
-	fs, cleanup, err := vfst.NewTestFS(nil)
-	require.NoError(t, err)
-	t.Cleanup(cleanup)
-
-	c := newTestConfig(t, fs)
-	assert.NotPanics(t, func() {
-		c.addTemplateFunc("func", nil)
-	})
-	assert.Panics(t, func() {
-		c.addTemplateFunc("func", nil)
+	chezmoitest.WithTestFS(t, nil, func(fs vfs.FS) {
+		c := newTestConfig(t, fs)
+		assert.NotPanics(t, func() {
+			c.addTemplateFunc("func", nil)
+		})
+		assert.Panics(t, func() {
+			c.addTemplateFunc("func", nil)
+		})
 	})
 }
 

@@ -4,8 +4,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
+
+	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
 
 func TestVerifyCmd(t *testing.T) {
@@ -36,11 +38,9 @@ func TestVerifyCmd(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			fs, cleanup, err := vfst.NewTestFS(tc.root)
-			require.NoError(t, err)
-			t.Cleanup(cleanup)
-
-			assert.Equal(t, tc.expectedErr, newTestConfig(t, fs).execute([]string{"verify"}))
+			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
+				assert.Equal(t, tc.expectedErr, newTestConfig(t, fs).execute([]string{"verify"}))
+			})
 		})
 	}
 }
