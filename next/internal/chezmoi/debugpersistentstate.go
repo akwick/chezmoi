@@ -2,23 +2,23 @@ package chezmoi
 
 import "github.com/rs/zerolog"
 
-// A debugPersistentState wraps a PersistentState and logs to a log.Logger.
-type debugPersistentState struct {
+// A DebugPersistentState wraps a PersistentState and logs to a log.Logger.
+type DebugPersistentState struct {
 	s      PersistentState
 	logger zerolog.Logger
 }
 
-// newDebugPersistentState returns a new debugPersistentState that wraps s and
+// NewDebugPersistentState returns a new debugPersistentState that wraps s and
 // logs to logger.
-func newDebugPersistentState(s PersistentState, logger zerolog.Logger) *debugPersistentState {
-	return &debugPersistentState{
+func NewDebugPersistentState(s PersistentState, logger zerolog.Logger) *DebugPersistentState {
+	return &DebugPersistentState{
 		s:      s,
 		logger: logger,
 	}
 }
 
 // CopyTo implements PersistentState.CopyTo.
-func (s *debugPersistentState) CopyTo(p PersistentState) error {
+func (s *DebugPersistentState) CopyTo(p PersistentState) error {
 	err := s.s.CopyTo(p)
 	s.logger.Debug().
 		Err(err).
@@ -27,7 +27,7 @@ func (s *debugPersistentState) CopyTo(p PersistentState) error {
 }
 
 // Delete implements PersistentState.Delete.
-func (s *debugPersistentState) Delete(bucket, key []byte) error {
+func (s *DebugPersistentState) Delete(bucket, key []byte) error {
 	err := s.s.Delete(bucket, key)
 	s.logger.Debug().
 		Bytes("bucket", bucket).
@@ -38,7 +38,7 @@ func (s *debugPersistentState) Delete(bucket, key []byte) error {
 }
 
 // ForEach implements PersistentState.ForEach.
-func (s *debugPersistentState) ForEach(bucket []byte, fn func(k, v []byte) error) error {
+func (s *DebugPersistentState) ForEach(bucket []byte, fn func(k, v []byte) error) error {
 	err := s.s.ForEach(bucket, func(k, v []byte) error {
 		err := fn(k, v)
 		s.logger.Debug().
@@ -56,7 +56,7 @@ func (s *debugPersistentState) ForEach(bucket []byte, fn func(k, v []byte) error
 }
 
 // Get implements PersistentState.Get.
-func (s *debugPersistentState) Get(bucket, key []byte) ([]byte, error) {
+func (s *DebugPersistentState) Get(bucket, key []byte) ([]byte, error) {
 	value, err := s.s.Get(bucket, key)
 	s.logger.Debug().
 		Bytes("bucket", bucket).
@@ -68,7 +68,7 @@ func (s *debugPersistentState) Get(bucket, key []byte) ([]byte, error) {
 }
 
 // Set implements PersistentState.Set.
-func (s *debugPersistentState) Set(bucket, key, value []byte) error {
+func (s *DebugPersistentState) Set(bucket, key, value []byte) error {
 	err := s.s.Set(bucket, key, value)
 	s.logger.Debug().
 		Bytes("bucket", bucket).

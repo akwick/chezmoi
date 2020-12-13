@@ -21,7 +21,7 @@ type DebugSystem struct {
 func NewDebugSystem(system System, logger zerolog.Logger) *DebugSystem {
 	return &DebugSystem{
 		s:      system,
-		ps:     newDebugPersistentState(system.PersistentState(), logger),
+		ps:     NewDebugPersistentState(system.PersistentState(), logger),
 		logger: logger,
 	}
 }

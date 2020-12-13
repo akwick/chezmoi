@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -551,7 +550,6 @@ func (c *Config) execute(args []string) error {
 }
 
 func (c *Config) persistentState(options *bolt.Options) (chezmoi.PersistentState, error) {
-	persistentStateFile := c.persistentStateFile()
 	if options == nil {
 		options = &bolt.Options{}
 	}
@@ -762,6 +760,8 @@ func (c *Config) newRootCmd() (*cobra.Command, error) {
 }
 
 func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error {
+	// FIXME factor out config check
+
 	var err error
 	c.absSlashConfigFile, err = chezmoi.NewOSPath(c.configFileStr).AbsSlash()
 	if err != nil {
@@ -784,6 +784,9 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 	}
 	if configErr != nil {
 		cmd.Printf("warning: %s: %v\n", c.configFileStr, configErr)
+		if !boolAnnotation(cmd, doesNotRequireValidConfig) {
+			return fmt.Errorf("%s: %w", c.configFileStr, configErr)
+		}
 	}
 
 	if strings.ToLower(c.Color) == "auto" {
@@ -797,7 +800,9 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 	} else if color, err := parseBool(c.Color); err == nil {
 		c.color = color
 	} else {
-		return fmt.Errorf("%s: invalid color value", c.Color)
+		if !boolAnnotation(cmd, doesNotRequireValidConfig) {
+			return fmt.Errorf("%s: invalid color value", c.Color)
+		}
 	}
 
 	if strings.ToLower(c.UseBuiltinGit) == "auto" {
@@ -810,7 +815,9 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 	} else if useBuiltinGit, err := parseBool(c.UseBuiltinGit); err == nil {
 		c.useBuiltinGit = useBuiltinGit
 	} else {
-		return fmt.Errorf("%s: invalid use builtin git value", c.UseBuiltinGit)
+		if !boolAnnotation(cmd, doesNotRequireValidConfig) {
+			return fmt.Errorf("%s: invalid use builtin git value", c.UseBuiltinGit)
+		}
 	}
 
 	if c.color {
@@ -828,14 +835,45 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 		return err
 	}
 
-	persistentState, err := c.persistentState(nil)
+	persistentStateFile := c.persistentStateFile()
+	options := bolt.Options{
+		Timeout: time.Second,
+	}
+	if c.dryRun {
+		options.ReadOnly = true
+	}
+	var persistentState chezmoi.PersistentState
+	persistentState, err = chezmoi.NewBoltPersistentState(c.fs, persistentStateFile.String(), &options)
 	if err != nil {
 		return err
 	}
+	if c.dryRun {
+		mockPeristentState := chezmoi.NewMockPersistentState()
+		if err := persistentState.CopyTo(mockPeristentState); err != nil {
+			return err
+		}
+		persistentState = mockPeristentState
+	}
+
 	c.baseSystem = chezmoi.NewRealSystem(c.fs, persistentState)
+
+	if c.debug {
+		output := zerolog.ConsoleWriter{
+			Out:        c.stderr,
+			NoColor:    !c.color,
+			TimeFormat: time.RFC3339,
+		}
+		logger := zerolog.New(output).Level(zerolog.DebugLevel).With().Timestamp().Logger()
+		c.baseSystem = chezmoi.NewDebugSystem(c.baseSystem, logger)
+	}
+
+	baseSystem := c.baseSystem
+	if c.dryRun {
+
+	}
+
 	c.sourceSystem = c.baseSystem
 	c.destSystem = c.baseSystem
-	// FIXME maybe re-order this graph of systems?
 	if !boolAnnotation(cmd, modifiesDestinationDirectory) {
 		c.destSystem = chezmoi.NewReadOnlySystem(c.destSystem)
 	}
@@ -855,23 +893,6 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 	if c.verbose {
 		c.sourceSystem = chezmoi.NewGitDiffSystem(c.sourceSystem, c.stdout, c.absSlashSourceDir, c.color)
 		c.destSystem = chezmoi.NewGitDiffSystem(c.destSystem, c.stdout, c.absSlashDestDir, c.color)
-	}
-	if c.debug {
-		output := zerolog.ConsoleWriter{
-			Out:        c.stderr,
-			NoColor:    !c.color,
-			TimeFormat: time.RFC3339,
-		}
-		logger := zerolog.New(output).Level(zerolog.DebugLevel).With().Timestamp().Logger()
-		c.baseSystem = chezmoi.NewDebugSystem(c.baseSystem, logger)
-		c.sourceSystem = chezmoi.NewDebugSystem(c.sourceSystem, logger)
-		c.destSystem = chezmoi.NewDebugSystem(c.destSystem, logger)
-	}
-
-	if !boolAnnotation(cmd, doesNotRequireValidConfig) {
-		if configErr != nil {
-			return errors.New("invalid config, aborting")
-		}
 	}
 
 	if boolAnnotation(cmd, requiresConfigDirectory) {

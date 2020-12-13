@@ -65,7 +65,7 @@ func TestApplyCmd(t *testing.T) {
 		},
 		{
 			name: "apply_all_--dry-run",
-			args: []string{"--dry-run"},
+			args: []string{"--dry-run", "--debug"},
 			tests: []interface{}{
 				vfst.TestPath("/home/user/.absent",
 					vfst.TestDoesNotExist,
@@ -119,35 +119,39 @@ func TestApplyCmd(t *testing.T) {
 			},
 		},
 	} {
+		if tc.name != "apply_all_--dry-run" {
+			continue
+		}
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
 			chezmoitest.WithTestFS(t, map[string]interface{}{
-				"/home/user/.local/share/chezmoi": map[string]interface{}{
-					"dot_absent":            "",
-					"empty_dot_hushlogin":   "",
-					"executable_dot_binary": "#!/bin/sh\n",
-					"exists_dot_exists":     "",
-					"dot_bashrc":            "# contents of .bashrc\n",
-					"dot_gitconfig.tmpl": "" +
-						"[core]\n" +
-						"  autocrlf = false\n" +
-						"[user]\n" +
-						"  email = {{ \"you@example.com\" }}\n" +
-						"  name = Your Name\n",
-					"private_dot_ssh": map[string]interface{}{
-						"config": "# contents of .ssh/config\n",
+				"/home/user": map[string]interface{}{
+					".config/chezmoi/chezmoistate.boltdb": "",
+					".local/share/chezmoi": map[string]interface{}{
+						"dot_absent":            "",
+						"empty_dot_hushlogin":   "",
+						"executable_dot_binary": "#!/bin/sh\n",
+						"exists_dot_exists":     "",
+						"dot_bashrc":            "# contents of .bashrc\n",
+						"dot_gitconfig.tmpl": "" +
+							"[core]\n" +
+							"  autocrlf = false\n" +
+							"[user]\n" +
+							"  email = {{ \"you@example.com\" }}\n" +
+							"  name = Your Name\n",
+						"private_dot_ssh": map[string]interface{}{
+							"config": "# contents of .ssh/config\n",
+						},
+						"symlink_dot_symlink": ".bashrc",
 					},
-					"symlink_dot_symlink": ".bashrc",
 				},
 			}, func(fs vfs.FS) {
 				if tc.extraRoot != nil {
 					require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
 				}
-
 				require.NoError(t, newTestConfig(t, fs).execute(append([]string{"apply"}, tc.args...)))
-
 				vfst.RunTests(t, fs, "", tc.tests)
 			})
 		})
