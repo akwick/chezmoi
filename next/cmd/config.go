@@ -550,19 +550,6 @@ func (c *Config) execute(args []string) error {
 	return rootCmd.Execute()
 }
 
-func (c *Config) persistentState(options *bolt.Options) (chezmoi.PersistentState, error) {
-	if options == nil {
-		options = &bolt.Options{}
-	}
-	if options.Timeout == 0 {
-		options.Timeout = 2 * time.Second
-	}
-	if c.dryRun {
-		options.ReadOnly = true
-	}
-	return chezmoi.NewBoltPersistentState(c.fs, persistentStateFile.String(), options)
-}
-
 func (c *Config) persistentStateFile() *chezmoi.OSPath {
 	if c.configFileStr != "" {
 		return chezmoi.NewOSPath(c.configFileStr).Dir().Join(persistentStateFilename)
@@ -849,11 +836,11 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 		return err
 	}
 	if c.dryRun {
-		mockPeristentState := chezmoi.NewMockPersistentState()
-		if err := persistentState.CopyTo(mockPeristentState); err != nil {
+		dryRunPeristentState := chezmoi.NewMockPersistentState()
+		if err := persistentState.CopyTo(dryRunPeristentState); err != nil {
 			return err
 		}
-		persistentState = mockPeristentState
+		persistentState = dryRunPeristentState
 	}
 
 	c.baseSystem = chezmoi.NewRealSystem(c.fs, persistentState)
@@ -866,11 +853,6 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 		}
 		logger := zerolog.New(output).Level(zerolog.DebugLevel).With().Timestamp().Logger()
 		c.baseSystem = chezmoi.NewDebugSystem(c.baseSystem, logger)
-	}
-
-	baseSystem := c.baseSystem
-	if c.dryRun {
-
 	}
 
 	c.sourceSystem = c.baseSystem

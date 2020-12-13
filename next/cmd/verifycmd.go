@@ -29,7 +29,11 @@ func (c *Config) newVerifyCmd() *cobra.Command {
 
 func (c *Config) runVerifyCmd(cmd *cobra.Command, args []string) error {
 	dryRunSystem := chezmoi.NewDryRunSystem(c.destSystem)
-	if err := c.applyArgs(dryRunSystem, c.absSlashDestDir, args, c.verify.include, c.verify.recursive, c.Umask.FileMode()); err != nil {
+	dryRunPersistentState := chezmoi.NewMockPersistentState()
+	if err := c.persistentState.CopyTo(dryRunPersistentState); err != nil {
+		return err
+	}
+	if err := c.applyArgs(dryRunSystem, dryRunPersistentState, c.absSlashDestDir, args, c.verify.include, c.verify.recursive, c.Umask.FileMode()); err != nil {
 		return err
 	}
 	if dryRunSystem.Modified() {

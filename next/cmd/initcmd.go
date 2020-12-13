@@ -178,7 +178,7 @@ func (c *Config) runInitCmd(cmd *cobra.Command, args []string) error {
 	if c.init.apply {
 		var args []string
 		recursive := false
-		if err := c.applyArgs(c.destSystem, c.absSlashDestDir, args, chezmoi.NewIncludeSet(chezmoi.IncludeAll), recursive, c.Umask.FileMode()); err != nil {
+		if err := c.applyArgs(c.destSystem, c.persistentState, c.absSlashDestDir, args, chezmoi.NewIncludeSet(chezmoi.IncludeAll), recursive, c.Umask.FileMode()); err != nil {
 			return err
 		}
 	}

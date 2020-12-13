@@ -133,15 +133,14 @@ func TestTargetStateEntryApplyAndEqual(t *testing.T) {
 			persistentState := newUnusedPersistentState()
 
 			chezmoitest.WithTestFS(t, actualState, func(fs vfs.FS) {
-				s := newTestRealSystem(fs)
+				s := NewRealSystem(fs)
 
 				// Read the initial destination state entry from fs.
 				actualStateEntry, err := NewActualStateEntry(s, "/home/user/target")
 				require.NoError(t, err)
 
 				// Apply the target state entry.
-				targetSystem := newTestRealSystem(fs)
-				require.NoError(t, targetState.Apply(targetSystem, persistentState, actualStateEntry, GetUmask()))
+				require.NoError(t, targetState.Apply(s, persistentState, actualStateEntry, GetUmask()))
 
 				// Verify that the actual state entry matches the desired
 				// state.

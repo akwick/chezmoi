@@ -229,7 +229,7 @@ func TestSourceStateAdd(t *testing.T) {
 				if tc.extraRoot != nil {
 					require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
 				}
-				system := newTestRealSystem(fs)
+				system := NewRealSystem(fs)
 				persistentState := newUnusedPersistentState()
 
 				s := NewSourceState(
@@ -459,7 +459,7 @@ func TestSourceStateApplyAll(t *testing.T) {
 			t.Parallel()
 
 			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
-				system := newTestRealSystem(fs)
+				system := NewRealSystem(fs)
 				persistentState := newUnusedPersistentState()
 				sourceStateOptions := []SourceStateOption{
 					WithDestDir("/home/user"),
@@ -528,7 +528,7 @@ func TestSourceStateSortedTargetNames(t *testing.T) {
 			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
 				s := NewSourceState(
 					WithSourceDir("/home/user/.local/share/chezmoi"),
-					WithSystem(newTestRealSystem(fs)),
+					WithSystem(NewRealSystem(fs)),
 				)
 				require.NoError(t, s.Read())
 				assert.Equal(t, tc.expectedSortedTargetNames, s.AllTargetNames())
@@ -1008,7 +1008,7 @@ func TestSourceStateRead(t *testing.T) {
 				s := NewSourceState(
 					WithDestDir("/home/user"),
 					WithSourceDir("/home/user/.local/share/chezmoi"),
-					WithSystem(newTestRealSystem(fs)),
+					WithSystem(NewRealSystem(fs)),
 				)
 				err := s.Read()
 				if tc.expectedError != "" {

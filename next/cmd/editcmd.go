@@ -57,5 +57,5 @@ func (c *Config) runEditCmd(cmd *cobra.Command, args []string, s *chezmoi.Source
 		return nil
 	}
 
-	return c.applyArgs(c.destSystem, c.absSlashDestDir, args, c.Edit.include, c.Edit.recursive, c.Umask.FileMode())
+	return c.applyArgs(c.destSystem, c.persistentState, c.absSlashDestDir, args, c.Edit.include, c.Edit.recursive, c.Umask.FileMode())
 }

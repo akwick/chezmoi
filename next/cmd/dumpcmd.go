@@ -31,7 +31,8 @@ func (c *Config) newDumpCmd() *cobra.Command {
 
 func (c *Config) runDumpCmd(cmd *cobra.Command, args []string) error {
 	dumpSystem := chezmoi.NewDumpSystem()
-	if err := c.applyArgs(dumpSystem, "", args, c.dump.include, c.dump.recursive, os.ModePerm); err != nil {
+	persistentState := chezmoi.NewNullPersistentState()
+	if err := c.applyArgs(dumpSystem, persistentState, "", args, c.dump.include, c.dump.recursive, os.ModePerm); err != nil {
 		return err
 	}
 	return c.marshal(dumpSystem.Data())

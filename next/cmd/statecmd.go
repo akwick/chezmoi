@@ -44,12 +44,11 @@ func (c *Config) newStateCmd() *cobra.Command {
 }
 
 func (c *Config) runStateDataCmd(cmd *cobra.Command, args []string) error {
-	persistentState := c.baseSystem.PersistentState()
-	entryStateData, err := chezmoi.StateData(persistentState, chezmoi.DestEntryStateBucket)
+	entryStateData, err := chezmoi.StateData(c.persistentState, chezmoi.DestEntryStateBucket)
 	if err != nil {
 		return err
 	}
-	scriptOnceData, err := chezmoi.StateData(persistentState, chezmoi.ScriptOnceStateBucket)
+	scriptOnceData, err := chezmoi.StateData(c.persistentState, chezmoi.ScriptOnceStateBucket)
 	if err != nil {
 		return err
 	}

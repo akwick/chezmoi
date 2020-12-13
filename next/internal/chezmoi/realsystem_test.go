@@ -27,7 +27,7 @@ func TestRealSystemGlob(t *testing.T) {
 			"dir/subdir/foo": "",
 		},
 	}, func(fs vfs.FS) {
-		s := newTestRealSystem(fs)
+		s := NewRealSystem(fs)
 		for _, tc := range []struct {
 			pattern         string
 			expectedMatches []string
@@ -63,10 +63,6 @@ func TestRealSystemGlob(t *testing.T) {
 			})
 		}
 	})
-}
-
-func newTestRealSystem(fs vfs.FS) *RealSystem {
-	return NewRealSystem(fs, NewMockPersistentState())
 }
 
 func pathsToSlashes(paths []string) []string {

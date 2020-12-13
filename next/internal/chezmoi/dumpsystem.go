@@ -21,7 +21,6 @@ const (
 // A DumpSystem is a System that writes to a data file.
 type DumpSystem struct {
 	nullReaderSystem
-	ps   NullPersistentState
 	data map[string]interface{}
 }
 
@@ -82,11 +81,6 @@ func (s *DumpSystem) Mkdir(dirname string, perm os.FileMode) error {
 		Perm: perm,
 	}
 	return nil
-}
-
-// PersistentState implements System.PersistentState.
-func (s *DumpSystem) PersistentState() PersistentState {
-	return s.ps
 }
 
 // RemoveAll implements System.RemoveAll.

@@ -38,7 +38,7 @@ func TestTARSystem(t *testing.T) {
 	}, func(fs vfs.FS) {
 		s := NewSourceState(
 			WithSourceDir("/home/user/.local/share/chezmoi"),
-			WithSystem(newTestRealSystem(fs)),
+			WithSystem(NewRealSystem(fs)),
 		)
 		require.NoError(t, s.Read())
 		require.NoError(t, s.Evaluate())

@@ -72,5 +72,5 @@ func (c *Config) runUpdateCmd(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	return c.applyArgs(c.destSystem, c.absSlashDestDir, args, c.update.include, c.update.recursive, c.Umask.FileMode())
+	return c.applyArgs(c.destSystem, c.persistentState, c.absSlashDestDir, args, c.update.include, c.update.recursive, c.Umask.FileMode())
 }
