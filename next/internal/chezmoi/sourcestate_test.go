@@ -230,6 +230,7 @@ func TestSourceStateAdd(t *testing.T) {
 					require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
 				}
 				system := newTestRealSystem(fs)
+				persistentState := NewMockPersistentState()
 
 				s := NewSourceState(
 					WithDestDir("/home/user"),
@@ -243,7 +244,7 @@ func TestSourceStateAdd(t *testing.T) {
 				for _, destPath := range tc.destPaths {
 					require.NoError(t, s.AddDestPathInfos(destPathInfos, system, destPath, nil))
 				}
-				require.NoError(t, s.Add(system, destPathInfos, &tc.addOptions))
+				require.NoError(t, s.Add(system, persistentState, destPathInfos, &tc.addOptions))
 
 				vfst.RunTests(t, fs, "", tc.tests...)
 			})
@@ -459,6 +460,7 @@ func TestSourceStateApplyAll(t *testing.T) {
 
 			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
 				system := newTestRealSystem(fs)
+				persistentState := NewMockPersistentState()
 				sourceStateOptions := []SourceStateOption{
 					WithDestDir("/home/user"),
 					WithSourceDir("/home/user/.local/share/chezmoi"),
@@ -468,7 +470,7 @@ func TestSourceStateApplyAll(t *testing.T) {
 				s := NewSourceState(sourceStateOptions...)
 				require.NoError(t, s.Read())
 				require.NoError(t, s.Evaluate())
-				require.NoError(t, s.applyAll(system, "/home/user", ApplyOptions{
+				require.NoError(t, s.applyAll(system, persistentState, "/home/user", ApplyOptions{
 					Umask: GetUmask(),
 				}))
 

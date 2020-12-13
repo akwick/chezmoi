@@ -13,7 +13,6 @@ import (
 // A DebugSystem wraps a System and logs all of the actions it executes.
 type DebugSystem struct {
 	s      System
-	ps     PersistentState
 	logger zerolog.Logger
 }
 
@@ -21,7 +20,6 @@ type DebugSystem struct {
 func NewDebugSystem(system System, logger zerolog.Logger) *DebugSystem {
 	return &DebugSystem{
 		s:      system,
-		ps:     NewDebugPersistentState(system.PersistentState(), logger),
 		logger: logger,
 	}
 }
@@ -107,11 +105,6 @@ func (s *DebugSystem) Mkdir(name string, perm os.FileMode) error {
 		Err(err).
 		Msg("Mkdir")
 	return err
-}
-
-// PersistentState implements System.PersistentState.
-func (s *DebugSystem) PersistentState() PersistentState {
-	return s.ps
 }
 
 // RawPath implements System.RawPath.

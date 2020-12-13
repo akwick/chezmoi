@@ -11,20 +11,14 @@ import (
 // a wrapped System.
 type DryRunSystem struct {
 	s        System
-	ps       PersistentState
 	modified bool
 }
 
 // NewDryRunSystem returns a new DryRunSystem that wraps fs.
-func NewDryRunSystem(s System) (*DryRunSystem, error) {
-	ps := NewMockPersistentState()
-	if err := s.PersistentState().CopyTo(ps); err != nil {
-		return nil, err
-	}
+func NewDryRunSystem(s System) *DryRunSystem {
 	return &DryRunSystem{
-		s:  s,
-		ps: ps,
-	}, nil
+		s: s,
+	}
 }
 
 // Chmod implements System.Chmod.
@@ -58,11 +52,6 @@ func (s *DryRunSystem) Mkdir(name string, perm os.FileMode) error {
 // has been called.
 func (s *DryRunSystem) Modified() bool {
 	return s.modified
-}
-
-// PersistentState implements System.PersistentState.
-func (s *DryRunSystem) PersistentState() PersistentState {
-	return s.ps
 }
 
 // RawPath implements System.RawPath.

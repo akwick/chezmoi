@@ -20,7 +20,7 @@ type EntryState struct {
 
 // A TargetStateEntry represents the state of an entry in the target state.
 type TargetStateEntry interface {
-	Apply(s System, actualStateEntry ActualStateEntry, umask os.FileMode) error
+	Apply(s System, ps PersistentState, actualStateEntry ActualStateEntry, umask os.FileMode) error
 	Equal(actualStateEntry ActualStateEntry, umask os.FileMode) (bool, error)
 	EntryState() (*EntryState, error)
 	Evaluate() error
@@ -77,7 +77,7 @@ func (es *EntryState) Equal(other *EntryState) bool {
 }
 
 // Apply updates actualStateEntry to match t.
-func (t *TargetStateAbsent) Apply(s System, actualStateEntry ActualStateEntry, umask os.FileMode) error {
+func (t *TargetStateAbsent) Apply(s System, ps PersistentState, actualStateEntry ActualStateEntry, umask os.FileMode) error {
 	if _, ok := actualStateEntry.(*ActualStateAbsent); ok {
 		return nil
 	}
@@ -104,7 +104,7 @@ func (t *TargetStateAbsent) Evaluate() error {
 }
 
 // Apply updates actualStateEntry to match t. It does not recurse.
-func (t *TargetStateDir) Apply(s System, actualStateEntry ActualStateEntry, umask os.FileMode) error {
+func (t *TargetStateDir) Apply(s System, ps PersistentState, actualStateEntry ActualStateEntry, umask os.FileMode) error {
 	if actualStateDir, ok := actualStateEntry.(*ActualStateDir); ok {
 		if umaskPermEqual(actualStateDir.perm, t.perm, umask) {
 			return nil
@@ -142,7 +142,7 @@ func (t *TargetStateDir) Evaluate() error {
 }
 
 // Apply updates actualStateEntry to match t.
-func (t *TargetStateFile) Apply(s System, actualStateEntry ActualStateEntry, umask os.FileMode) error {
+func (t *TargetStateFile) Apply(s System, ps PersistentState, actualStateEntry ActualStateEntry, umask os.FileMode) error {
 	if actualStateFile, ok := actualStateEntry.(*ActualStateFile); ok {
 		// Compare file contents using only their SHA256 sums. This is so that
 		// we can compare last-written states without storing the full contents
@@ -213,7 +213,7 @@ func (t *TargetStateFile) Evaluate() error {
 }
 
 // Apply updates actualStateEntry to match t.
-func (t *TargetStatePresent) Apply(s System, actualStateEntry ActualStateEntry, umask os.FileMode) error {
+func (t *TargetStatePresent) Apply(s System, ps PersistentState, actualStateEntry ActualStateEntry, umask os.FileMode) error {
 	if actualStateFile, ok := actualStateEntry.(*ActualStateFile); ok {
 		if umaskPermEqual(actualStateFile.perm, t.perm, umask) {
 			return nil
@@ -253,7 +253,7 @@ func (t *TargetStatePresent) Evaluate() error {
 }
 
 // Apply renames actualStateEntry.
-func (t *TargetStateRenameDir) Apply(s System, actualStateEntry ActualStateEntry, umask os.FileMode) error {
+func (t *TargetStateRenameDir) Apply(s System, ps PersistentState, actualStateEntry ActualStateEntry, umask os.FileMode) error {
 	dir := path.Dir(actualStateEntry.Path())
 	return s.Rename(path.Join(dir, t.oldName), path.Join(dir, t.newName))
 }
@@ -274,7 +274,7 @@ func (t *TargetStateRenameDir) Evaluate() error {
 }
 
 // Apply runs t.
-func (t *TargetStateScript) Apply(s System, actualStateEntry ActualStateEntry, umask os.FileMode) error {
+func (t *TargetStateScript) Apply(s System, ps PersistentState, actualStateEntry ActualStateEntry, umask os.FileMode) error {
 	var (
 		key        []byte
 		executedAt time.Time
@@ -285,7 +285,7 @@ func (t *TargetStateScript) Apply(s System, actualStateEntry ActualStateEntry, u
 			return err
 		}
 		key = []byte(hex.EncodeToString(contentsSHA256))
-		scriptOnceState, err := s.PersistentState().Get(ScriptOnceStateBucket, key)
+		scriptOnceState, err := ps.Get(ScriptOnceStateBucket, key)
 		if err != nil {
 			return err
 		}
@@ -312,7 +312,7 @@ func (t *TargetStateScript) Apply(s System, actualStateEntry ActualStateEntry, u
 		if err != nil {
 			return err
 		}
-		if err := s.PersistentState().Set(ScriptOnceStateBucket, key, value); err != nil {
+		if err := ps.Set(ScriptOnceStateBucket, key, value); err != nil {
 			return err
 		}
 	}
@@ -338,7 +338,7 @@ func (t *TargetStateScript) Evaluate() error {
 }
 
 // Apply updates actualStateEntry to match t.
-func (t *TargetStateSymlink) Apply(s System, actualStateEntry ActualStateEntry, umask os.FileMode) error {
+func (t *TargetStateSymlink) Apply(s System, ps PersistentState, actualStateEntry ActualStateEntry, umask os.FileMode) error {
 	if actualStateSymlink, ok := actualStateEntry.(*ActualStateSymlink); ok {
 		actualLinkname, err := actualStateSymlink.Linkname()
 		if err != nil {

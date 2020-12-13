@@ -106,11 +106,6 @@ func (s *GitDiffSystem) Mkdir(name string, perm os.FileMode) error {
 	return s.s.Mkdir(name, perm)
 }
 
-// PersistentState implements System.PersistentState.
-func (s *GitDiffSystem) PersistentState() PersistentState {
-	return s.s.PersistentState()
-}
-
 // RawPath implements System.RawPath.
 func (s *GitDiffSystem) RawPath(path string) (string, error) {
 	return s.s.RawPath(path)

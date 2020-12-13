@@ -15,7 +15,6 @@ type System interface {
 	IdempotentCmdOutput(cmd *exec.Cmd) ([]byte, error)
 	Lstat(filename string) (os.FileInfo, error)
 	Mkdir(name string, perm os.FileMode) error
-	PersistentState() PersistentState
 	RawPath(path string) (string, error)
 	ReadDir(dirname string) ([]os.FileInfo, error)
 	ReadFile(filename string) ([]byte, error)

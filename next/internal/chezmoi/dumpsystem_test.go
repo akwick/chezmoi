@@ -39,7 +39,8 @@ func TestDumpSystem(t *testing.T) {
 		require.NoError(t, s.Evaluate())
 
 		dumpSystem := NewDumpSystem()
-		require.NoError(t, s.applyAll(dumpSystem, "", ApplyOptions{}))
+		persistentState := NewMockPersistentState()
+		require.NoError(t, s.applyAll(dumpSystem, persistentState, "", ApplyOptions{}))
 		expectedData := map[string]interface{}{
 			"dir": &dirData{
 				Type: dataTypeDir,

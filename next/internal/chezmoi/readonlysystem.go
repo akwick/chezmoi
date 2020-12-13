@@ -9,15 +9,13 @@ import (
 
 // A ReadOnlySystem is a system that may only be read from.
 type ReadOnlySystem struct {
-	s  System
-	ps PersistentState
+	s System
 }
 
 // NewReadOnlySystem returns a new ReadOnlySystem that wraps system.
 func NewReadOnlySystem(system System) *ReadOnlySystem {
 	return &ReadOnlySystem{
-		s:  system,
-		ps: newReadOnlyPersistentState(system.PersistentState()),
+		s: system,
 	}
 }
 
@@ -44,11 +42,6 @@ func (s *ReadOnlySystem) Lstat(filename string) (os.FileInfo, error) {
 // Mkdir implements System.Mkdir.
 func (s *ReadOnlySystem) Mkdir(name string, perm os.FileMode) error {
 	return os.ErrPermission
-}
-
-// PersistentState implements System.PersistentState.
-func (s *ReadOnlySystem) PersistentState() PersistentState {
-	return s.ps
 }
 
 // RawPath implements System.RawPath.

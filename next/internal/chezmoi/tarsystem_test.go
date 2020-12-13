@@ -45,7 +45,8 @@ func TestTARSystem(t *testing.T) {
 
 		b := &bytes.Buffer{}
 		tarSystem := NewTARSystem(b, tar.Header{})
-		require.NoError(t, s.applyAll(tarSystem, "", ApplyOptions{}))
+		persistentState := NewMockPersistentState()
+		require.NoError(t, s.applyAll(tarSystem, persistentState, "", ApplyOptions{}))
 
 		r := tar.NewReader(b)
 		for _, tc := range []struct {

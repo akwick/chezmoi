@@ -48,7 +48,7 @@ func WithDestDir(destDir string) SourceStateOption {
 	}
 }
 
-// WithEncryptionTool set the encryption tool.
+// WithEncryptionTool sets the encryption tool.
 func WithEncryptionTool(encryptionTool EncryptionTool) SourceStateOption {
 	return func(s *SourceState) {
 		s.encryptionTool = encryptionTool
@@ -136,7 +136,7 @@ type AddOptions struct {
 }
 
 // Add adds destPathInfos to s.
-func (s *SourceState) Add(sourceSystem System, destPathInfos map[string]os.FileInfo, options *AddOptions) error {
+func (s *SourceState) Add(sourceSystem System, persistentState PersistentState, destPathInfos map[string]os.FileInfo, options *AddOptions) error {
 	destPaths := make([]string, 0, len(destPathInfos))
 	for destPath := range destPathInfos {
 		destPaths = append(destPaths, destPath)
@@ -202,7 +202,7 @@ func (s *SourceState) Add(sourceSystem System, destPathInfos map[string]os.FileI
 	targetSourceState := &SourceState{
 		entries: newSourceStateEntries,
 	}
-	return targetSourceState.applyAll(sourceSystem, s.sourceDir, ApplyOptions{
+	return targetSourceState.applyAll(sourceSystem, persistentState, s.sourceDir, ApplyOptions{
 		Include: options.Include,
 		Umask:   options.umask,
 	})
@@ -283,7 +283,7 @@ type ApplyOptions struct {
 }
 
 // ApplyOne updates targetName in targetDir in targetSystem to match s.
-func (s *SourceState) ApplyOne(targetSystem System, targetDir, targetName string, options ApplyOptions) error {
+func (s *SourceState) ApplyOne(targetSystem System, persistentState PersistentState, targetDir, targetName string, options ApplyOptions) error {
 	targetStateEntry, err := s.entries[targetName].TargetStateEntry()
 	if err != nil {
 		return err
@@ -299,7 +299,7 @@ func (s *SourceState) ApplyOne(targetSystem System, targetDir, targetName string
 		return err
 	}
 
-	if err := targetStateEntry.Apply(targetSystem, actualStateEntry, options.Umask); err != nil {
+	if err := targetStateEntry.Apply(targetSystem, persistentState, actualStateEntry, options.Umask); err != nil {
 		return err
 	}
 
@@ -318,7 +318,7 @@ func (s *SourceState) ApplyOne(targetSystem System, targetDir, targetName string
 	if err != nil {
 		return err
 	}
-	return targetSystem.PersistentState().Set(DestEntryStateBucket, []byte(targetPath), data)
+	return persistentState.Set(DestEntryStateBucket, []byte(targetPath), data)
 }
 
 // Entries returns s's source state entries.
@@ -706,9 +706,9 @@ func (s *SourceState) addVersionFile(sourcePath string) error {
 }
 
 // applyAll updates targetDir in fs to match s.
-func (s *SourceState) applyAll(targetSystem System, targetDir string, options ApplyOptions) error {
+func (s *SourceState) applyAll(targetSystem System, persistentState PersistentState, targetDir string, options ApplyOptions) error {
 	for _, targetName := range s.AllTargetNames() {
-		if err := s.ApplyOne(targetSystem, targetDir, targetName, options); err != nil {
+		if err := s.ApplyOne(targetSystem, persistentState, targetDir, targetName, options); err != nil {
 			return err
 		}
 	}

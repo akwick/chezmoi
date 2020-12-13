@@ -130,6 +130,7 @@ func TestTargetStateEntryApplyAndEqual(t *testing.T) {
 
 			targetState := targetStates[tc.TargetStateKey]
 			actualState := actualStates[tc.ActualDestDirStateKey]
+			persistentState := NewMockPersistentState()
 
 			chezmoitest.WithTestFS(t, actualState, func(fs vfs.FS) {
 				s := newTestRealSystem(fs)
@@ -140,7 +141,7 @@ func TestTargetStateEntryApplyAndEqual(t *testing.T) {
 
 				// Apply the target state entry.
 				targetSystem := newTestRealSystem(fs)
-				require.NoError(t, targetState.Apply(targetSystem, actualStateEntry, GetUmask()))
+				require.NoError(t, targetState.Apply(targetSystem, persistentState, actualStateEntry, GetUmask()))
 
 				// Verify that the actual state entry matches the desired
 				// state.
