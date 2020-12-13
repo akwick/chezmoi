@@ -830,20 +830,19 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 	if c.dryRun {
 		options.ReadOnly = true
 	}
-	var persistentState chezmoi.PersistentState
-	persistentState, err = chezmoi.NewBoltPersistentState(c.fs, persistentStateFile.String(), &options)
+	c.persistentState, err = chezmoi.NewBoltPersistentState(c.fs, persistentStateFile.String(), &options)
 	if err != nil {
 		return err
 	}
 	if c.dryRun {
 		dryRunPeristentState := chezmoi.NewMockPersistentState()
-		if err := persistentState.CopyTo(dryRunPeristentState); err != nil {
+		if err := c.persistentState.CopyTo(dryRunPeristentState); err != nil {
 			return err
 		}
-		persistentState = dryRunPeristentState
+		c.persistentState = dryRunPeristentState
 	}
 
-	c.baseSystem = chezmoi.NewRealSystem(c.fs, persistentState)
+	c.baseSystem = chezmoi.NewRealSystem(c.fs)
 
 	if c.debug {
 		output := zerolog.ConsoleWriter{

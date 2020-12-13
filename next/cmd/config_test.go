@@ -98,7 +98,7 @@ func TestValidateKeys(t *testing.T) {
 }
 
 func newTestConfig(t *testing.T, fs vfs.FS) *Config {
-	system := chezmoi.NewRealSystem(fs, chezmoi.NewMockPersistentState())
+	system := chezmoi.NewRealSystem(fs)
 	c, err := newConfig(
 		withBaseSystem(system),
 		withDestSystem(system),
