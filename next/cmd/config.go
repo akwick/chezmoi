@@ -24,7 +24,7 @@ import (
 	"github.com/twpayne/go-vfs"
 	vfsafero "github.com/twpayne/go-vfsafero"
 	"github.com/twpayne/go-xdg/v3"
-	bolt "go.etcd.io/bbolt"
+	"go.etcd.io/bbolt"
 	"golang.org/x/term"
 
 	"github.com/twpayne/chezmoi/internal/git"
@@ -824,13 +824,9 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 	}
 
 	persistentStateFile := c.persistentStateFile()
-	options := bolt.Options{
+	c.persistentState, err = chezmoi.NewBoltPersistentState(c.fs, persistentStateFile.String(), &bbolt.Options{
 		Timeout: time.Second,
-	}
-	if c.dryRun {
-		options.ReadOnly = true
-	}
-	c.persistentState, err = chezmoi.NewBoltPersistentState(c.fs, persistentStateFile.String(), &options)
+	})
 	if err != nil {
 		return err
 	}

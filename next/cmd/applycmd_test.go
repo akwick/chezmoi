@@ -65,7 +65,7 @@ func TestApplyCmd(t *testing.T) {
 		},
 		{
 			name: "apply_all_--dry-run",
-			args: []string{"--dry-run", "--debug"},
+			args: []string{"--dry-run"},
 			tests: []interface{}{
 				vfst.TestPath("/home/user/.absent",
 					vfst.TestDoesNotExist,
