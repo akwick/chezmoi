@@ -21,7 +21,7 @@ const (
 // A DumpSystem is a System that writes to a data file.
 type DumpSystem struct {
 	nullReaderSystem
-	ps   nullPersistentState
+	ps   NullPersistentState
 	data map[string]interface{}
 }
 

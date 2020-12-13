@@ -19,8 +19,6 @@ func TestPersistentState(t *testing.T) {
 
 	s := NewMockPersistentState()
 
-	require.NoError(t, s.OpenOrCreate())
-
 	require.NoError(t, s.Delete(bucket, value))
 
 	actualValue, err := s.Get(bucket, key)

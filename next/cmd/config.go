@@ -48,13 +48,14 @@ type Config struct {
 
 	bds *xdg.BaseDirectorySpecification
 
-	configFileStr string
-	fs            vfs.FS
-	baseSystem    chezmoi.System
-	sourceSystem  chezmoi.System
-	destSystem    chezmoi.System
-	color         bool
-	useBuiltinGit bool
+	configFileStr   string
+	fs              vfs.FS
+	baseSystem      chezmoi.System
+	sourceSystem    chezmoi.System
+	destSystem      chezmoi.System
+	persistentState chezmoi.PersistentState
+	color           bool
+	useBuiltinGit   bool
 
 	// Global configuration, settable in the config file.
 	SourceDirStr  string                 `mapstructure:"sourceDir"`
@@ -304,7 +305,7 @@ func (c *Config) addTemplateFunc(key string, value interface{}) {
 	c.templateFuncs[key] = value
 }
 
-func (c *Config) applyArgs(targetSystem chezmoi.System, targetDir string, args []string, include *chezmoi.IncludeSet, recursive bool, umask os.FileMode) error {
+func (c *Config) applyArgs(targetSystem chezmoi.System, persistentState chezmoi.PersistentState, targetDir string, args []string, include *chezmoi.IncludeSet, recursive bool, umask os.FileMode) error {
 	s, err := c.sourceState()
 	if err != nil {
 		return err
@@ -329,7 +330,7 @@ func (c *Config) applyArgs(targetSystem chezmoi.System, targetDir string, args [
 	}
 
 	for _, targetName := range targetNames {
-		if err := s.ApplyOne(targetSystem, targetDir, targetName, applyOptions); err != nil {
+		if err := s.ApplyOne(targetSystem, persistentState, targetDir, targetName, applyOptions); err != nil {
 			if c.keepGoing {
 				c.errorf("%v", err)
 			} else {
@@ -881,14 +882,8 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 		c.sourceSystem = chezmoi.NewReadOnlySystem(c.sourceSystem)
 	}
 	if c.dryRun {
-		c.sourceSystem, err = chezmoi.NewDryRunSystem(c.sourceSystem)
-		if err != nil {
-			return err
-		}
-		c.destSystem, err = chezmoi.NewDryRunSystem(c.destSystem)
-		if err != nil {
-			return err
-		}
+		c.sourceSystem = chezmoi.NewDryRunSystem(c.sourceSystem)
+		c.destSystem = chezmoi.NewDryRunSystem(c.destSystem)
 	}
 	if c.verbose {
 		c.sourceSystem = chezmoi.NewGitDiffSystem(c.sourceSystem, c.stdout, c.absSlashSourceDir, c.color)

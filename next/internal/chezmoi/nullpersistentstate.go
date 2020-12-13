@@ -1,12 +1,35 @@
 package chezmoi
 
-// A nullPersistentState is an empty PersistentState that returns the zero value
+// A NullPersistentState is an empty PersistentState that returns the zero value
 // for all reads and silently consumes all writes.
-type nullPersistentState struct{}
+type NullPersistentState struct{}
 
-func (nullPersistentState) CopyTo(s PersistentState) error                          { return nil }
-func (nullPersistentState) Get(bucket, key []byte) ([]byte, error)                  { return nil, nil }
-func (nullPersistentState) Delete(bucket, key []byte) error                         { return nil }
-func (nullPersistentState) ForEach(bucket []byte, fn func(k, v []byte) error) error { return nil }
-func (nullPersistentState) OpenOrCreate() error                                     { return nil }
-func (nullPersistentState) Set(bucket, key, value []byte) error                     { return nil }
+// NewNullPersistentState returns a new NullPersistentState.
+func NewNullPersistentState() NullPersistentState {
+	return NullPersistentState{}
+}
+
+// CopyTo implements PersistentState.CopyTo.
+func (NullPersistentState) CopyTo(s PersistentState) error {
+	return nil
+}
+
+// Get implements PersistentState.Get.
+func (NullPersistentState) Get(bucket, key []byte) ([]byte, error) {
+	return nil, nil
+}
+
+// Delete implements PersistentState.Delete.
+func (NullPersistentState) Delete(bucket, key []byte) error {
+	return nil
+}
+
+// ForEach implements PersistentState.ForEach.
+func (NullPersistentState) ForEach(bucket []byte, fn func(k, v []byte) error) error {
+	return nil
+}
+
+// Set implements PersistentState.Set.
+func (NullPersistentState) Set(bucket, key, value []byte) error {
+	return nil
+}

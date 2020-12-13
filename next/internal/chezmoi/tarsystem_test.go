@@ -45,7 +45,7 @@ func TestTARSystem(t *testing.T) {
 
 		b := &bytes.Buffer{}
 		tarSystem := NewTARSystem(b, tar.Header{})
-		persistentState := NewMockPersistentState()
+		persistentState := newUnusedPersistentState()
 		require.NoError(t, s.applyAll(tarSystem, persistentState, "", ApplyOptions{}))
 
 		r := tar.NewReader(b)

@@ -37,7 +37,6 @@ func (nullReaderSystem) Get(bucket, key []byte) ([]byte, error)                 
 func (nullReaderSystem) Glob(pattern string) ([]string, error)                   { return nil, nil }
 func (nullReaderSystem) IdempotentCmdOutput(cmd *exec.Cmd) ([]byte, error)       { return cmd.Output() }
 func (nullReaderSystem) Lstat(name string) (os.FileInfo, error)                  { return nil, os.ErrNotExist }
-func (nullReaderSystem) OpenOrCreate() error                                     { return nil }
 func (nullReaderSystem) Stat(name string) (os.FileInfo, error)                   { return nil, os.ErrNotExist }
 func (nullReaderSystem) RawPath(path string) (string, error)                     { return path, nil }
 func (nullReaderSystem) ReadDir(dirname string) ([]os.FileInfo, error)           { return nil, os.ErrNotExist }

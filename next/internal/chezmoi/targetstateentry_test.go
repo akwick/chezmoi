@@ -130,7 +130,7 @@ func TestTargetStateEntryApplyAndEqual(t *testing.T) {
 
 			targetState := targetStates[tc.TargetStateKey]
 			actualState := actualStates[tc.ActualDestDirStateKey]
-			persistentState := NewMockPersistentState()
+			persistentState := newUnusedPersistentState()
 
 			chezmoitest.WithTestFS(t, actualState, func(fs vfs.FS) {
 				s := newTestRealSystem(fs)

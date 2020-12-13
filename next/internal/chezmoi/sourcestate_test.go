@@ -230,7 +230,7 @@ func TestSourceStateAdd(t *testing.T) {
 					require.NoError(t, vfst.NewBuilder().Build(fs, tc.extraRoot))
 				}
 				system := newTestRealSystem(fs)
-				persistentState := NewMockPersistentState()
+				persistentState := newUnusedPersistentState()
 
 				s := NewSourceState(
 					WithDestDir("/home/user"),
@@ -460,7 +460,7 @@ func TestSourceStateApplyAll(t *testing.T) {
 
 			chezmoitest.WithTestFS(t, tc.root, func(fs vfs.FS) {
 				system := newTestRealSystem(fs)
-				persistentState := NewMockPersistentState()
+				persistentState := newUnusedPersistentState()
 				sourceStateOptions := []SourceStateOption{
 					WithDestDir("/home/user"),
 					WithSourceDir("/home/user/.local/share/chezmoi"),

@@ -53,11 +53,6 @@ func (s *MockPersistentState) Get(bucket, key []byte) ([]byte, error) {
 	return bucketMap[string(key)], nil
 }
 
-// OpenOrCreate implements PersistentState.OpenOrCreate.
-func (s *MockPersistentState) OpenOrCreate() error {
-	return nil
-}
-
 // Set implements PersistentState.Set.
 func (s *MockPersistentState) Set(bucket, key, value []byte) error {
 	bucketMap, ok := s.buckets[string(bucket)]

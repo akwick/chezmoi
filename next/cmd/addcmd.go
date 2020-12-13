@@ -48,7 +48,7 @@ func (c *Config) runAddCmd(cmd *cobra.Command, args []string, sourceState *chezm
 		return err
 	}
 
-	return sourceState.Add(c.sourceSystem, destPathInfos, &chezmoi.AddOptions{
+	return sourceState.Add(c.sourceSystem, c.persistentState, destPathInfos, &chezmoi.AddOptions{
 		AutoTemplate: c.add.autoTemplate,
 		Empty:        c.add.empty,
 		Encrypt:      c.add.encrypt,

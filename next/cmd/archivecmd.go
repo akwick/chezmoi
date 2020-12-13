@@ -40,7 +40,8 @@ func (c *Config) newArchiveCmd() *cobra.Command {
 func (c *Config) runArchiveCmd(cmd *cobra.Command, args []string) error {
 	archive := strings.Builder{}
 	tarSystem := chezmoi.NewTARSystem(&archive, tarHeaderTemplate())
-	if err := c.applyArgs(tarSystem, "", args, c.archive.include, c.archive.recursive, os.ModePerm); err != nil {
+	persistentState := chezmoi.NewNullPersistentState()
+	if err := c.applyArgs(tarSystem, persistentState, "", args, c.archive.include, c.archive.recursive, os.ModePerm); err != nil {
 		return err
 	}
 	if err := tarSystem.Close(); err != nil {
