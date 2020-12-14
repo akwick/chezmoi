@@ -20,6 +20,7 @@ func (c *Config) newApplyCmd() *cobra.Command {
 		RunE:    c.runApplyCmd,
 		Annotations: map[string]string{
 			modifiesDestinationDirectory: "true",
+			modifiesPersistentState:      "true",
 		},
 	}
 

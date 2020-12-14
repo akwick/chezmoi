@@ -14,6 +14,7 @@ const (
 	doesNotRequireValidConfig    = "chezmoi_annotation_does_not_require_valid_config"
 	modifiesConfigFile           = "chezmoi_annotation_modifies_config_file"
 	modifiesDestinationDirectory = "chezmoi_annotation_modifies_destination_directory"
+	modifiesPersistentState      = "chezmoi_annotation_modifies_persistent_state"
 	modifiesSourceDirectory      = "chezmoi_annotation_modifies_source_directory"
 	requiresConfigDirectory      = "chezmoi_annotation_requires_config_directory"
 	requiresSourceDirectory      = "chezmoi_annotation_requires_source_directory"

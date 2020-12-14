@@ -2,13 +2,11 @@ package chezmoi
 
 import (
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/twpayne/go-vfs"
 	"github.com/twpayne/go-vfs/vfst"
-	"go.etcd.io/bbolt"
 
 	"github.com/twpayne/chezmoi/next/internal/chezmoitest"
 )
@@ -26,7 +24,7 @@ func TestBoltPersistentState(t *testing.T) {
 			value  = []byte("value")
 		)
 
-		b1, err := NewBoltPersistentState(fs, path, nil)
+		b1, err := NewBoltPersistentState(fs, path, false)
 		require.NoError(t, err)
 		vfst.RunTests(t, fs, "",
 			vfst.TestPath(path,
@@ -54,7 +52,7 @@ func TestBoltPersistentState(t *testing.T) {
 
 		require.NoError(t, b1.Close())
 
-		b2, err := NewBoltPersistentState(fs, path, nil)
+		b2, err := NewBoltPersistentState(fs, path, false)
 		require.NoError(t, err)
 
 		require.NoError(t, b2.Delete(bucket, key))
@@ -77,7 +75,7 @@ func TestBoltPersistentStateMock(t *testing.T) {
 			value2 = []byte("value2")
 		)
 
-		b, err := NewBoltPersistentState(fs, path, nil)
+		b, err := NewBoltPersistentState(fs, path, false)
 		require.NoError(t, err)
 		require.NoError(t, b.Set(bucket, key, value1))
 
@@ -119,22 +117,16 @@ func TestBoltPersistentStateReadOnly(t *testing.T) {
 			value  = []byte("value")
 		)
 
-		b1, err := NewBoltPersistentState(fs, path, nil)
+		b1, err := NewBoltPersistentState(fs, path, false)
 		require.NoError(t, err)
 		require.NoError(t, b1.Set(bucket, key, value))
 		require.NoError(t, b1.Close())
 
-		b2, err := NewBoltPersistentState(fs, path, &bbolt.Options{
-			ReadOnly: true,
-			Timeout:  1 * time.Second,
-		})
+		b2, err := NewBoltPersistentState(fs, path, true)
 		require.NoError(t, err)
 		defer b2.Close()
 
-		b3, err := NewBoltPersistentState(fs, path, &bbolt.Options{
-			ReadOnly: true,
-			Timeout:  1 * time.Second,
-		})
+		b3, err := NewBoltPersistentState(fs, path, true)
 		require.NoError(t, err)
 		defer b3.Close()
 

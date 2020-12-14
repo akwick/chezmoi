@@ -17,12 +17,12 @@ type persistentStateData struct {
 func (c *Config) newStateCmd() *cobra.Command {
 	stateCmd := &cobra.Command{
 		Use:   "state",
-		Short: "Manipulate the state",
+		Short: "Manipulate the persistent state",
 	}
 
 	dumpCmd := &cobra.Command{
 		Use:   "dump",
-		Short: "Generate a dump of the state",
+		Short: "Generate a dump of the persistent state",
 		// Long: mustLongHelp("state", "dump"), // FIXME
 		// Example: example("state", "dump"), // FIXME
 		Args: cobra.NoArgs,
@@ -32,11 +32,14 @@ func (c *Config) newStateCmd() *cobra.Command {
 
 	resetCmd := &cobra.Command{
 		Use:   "reset",
-		Short: "Reset the state",
+		Short: "Reset the persistent state",
 		// Long: mustLongHelp("state", "reset"), // FIXME
 		// Example: example("state", "reset"), // FIXME
 		Args: cobra.NoArgs,
 		RunE: c.runStateResetCmd,
+		Annotations: map[string]string{
+			modifiesPersistentState: "true",
+		},
 	}
 	stateCmd.AddCommand(resetCmd)
 
