@@ -771,10 +771,10 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 		}
 	}
 	if configErr != nil {
-		cmd.Printf("warning: %s: %v\n", c.configFileStr, configErr)
 		if !boolAnnotation(cmd, doesNotRequireValidConfig) {
-			return fmt.Errorf("%s: %w", c.configFileStr, configErr)
+			return fmt.Errorf("invalid config: %s: %w", c.configFileStr, configErr)
 		}
+		cmd.Printf("warning: %s: %v\n", c.configFileStr, configErr)
 	}
 
 	if strings.ToLower(c.Color) == "auto" {
@@ -787,10 +787,8 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 		}
 	} else if color, err := parseBool(c.Color); err == nil {
 		c.color = color
-	} else {
-		if !boolAnnotation(cmd, doesNotRequireValidConfig) {
-			return fmt.Errorf("%s: invalid color value", c.Color)
-		}
+	} else if !boolAnnotation(cmd, doesNotRequireValidConfig) {
+		return fmt.Errorf("%s: invalid color value", c.Color)
 	}
 
 	if strings.ToLower(c.UseBuiltinGit) == "auto" {
@@ -802,10 +800,8 @@ func (c *Config) persistentPreRunRootE(cmd *cobra.Command, args []string) error 
 		}
 	} else if useBuiltinGit, err := parseBool(c.UseBuiltinGit); err == nil {
 		c.useBuiltinGit = useBuiltinGit
-	} else {
-		if !boolAnnotation(cmd, doesNotRequireValidConfig) {
-			return fmt.Errorf("%s: invalid use builtin git value", c.UseBuiltinGit)
-		}
+	} else if !boolAnnotation(cmd, doesNotRequireValidConfig) {
+		return fmt.Errorf("%s: invalid use builtin git value", c.UseBuiltinGit)
 	}
 
 	if c.color {

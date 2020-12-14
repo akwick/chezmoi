@@ -9,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// Command annotations.
 const (
 	doesNotRequireValidConfig    = "chezmoi_annotation_does_not_require_valid_config"
 	modifiesConfigFile           = "chezmoi_annotation_modifies_config_file"
